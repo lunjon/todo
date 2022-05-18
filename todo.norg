@@ -1,0 +1,23 @@
+Features, fixes, changes, etc. to implement in the CLI.
+* Go - port of implementation to Golang
+  - [ ] Port implementation to Go
+
+* TODO
+  - [ ] Respect the `--no-colors` flag.
+  - [ ] Events should be sorted by newer first
+  - [ ] Deadline: TODOs can have a deadline for when they should be completed.
+        Missed deadlines should be moved to a status called `missed`?
+  - [ ] Reccuring TODOs. Can be assigned a periodicity when they re-appear with status `new`.
+  - [ ] It should be possible to create sub-tasks, e.g. by specifying a parent when
+        creating a task.
+  - [ ] More filters:
+  -- [x] tags
+  -- [ ] prio
+  -- [ ] title
+  -- [ ] description
+
+* Fix
+  - [x] Updating a TODO with an unknown context gives an ugly error
+  from the DB.
+  - [x] Style: use default color codes. Red, green, blue, etc. have their own codes
+  that can be used instead of setting RGB values.
