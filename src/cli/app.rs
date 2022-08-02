@@ -62,7 +62,7 @@ To include all statuses use --status=any.",
         .arg(
             Arg::new("all")
                 .long("all")
-                .short('A')
+                .short('a')
                 .exclusive(true)
                 .help("List all TODOs.")
                 .required(false),
