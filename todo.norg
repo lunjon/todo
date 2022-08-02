@@ -1,7 +1,4 @@
 Features, fixes, changes, etc. to implement in the CLI.
-* Go - port of implementation to Golang
-  - [ ] Port implementation to Go
-
 * TODO
   - [ ] Respect the `--no-colors` flag.
   - [ ] Events should be sorted by newer first
@@ -15,6 +12,7 @@ Features, fixes, changes, etc. to implement in the CLI.
   -- [ ] prio
   -- [ ] title
   -- [ ] description
+  - Add Starship prompt support.
 
 * Fix
   - [x] Updating a TODO with an unknown context gives an ugly error

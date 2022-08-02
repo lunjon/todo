@@ -6,7 +6,6 @@ CLI tool for managing TODOs.
 
 - Basic and easy management of TODOs.
 - Simple and user-friendly CLI thanks to [clap-rs](https://github.com/clap-rs/clap).
-- [Starship prompt](https://starship.rs/) support.
 
 ## Develop
 
