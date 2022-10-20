@@ -1,22 +1,9 @@
 use crate::error::Result;
-use crate::style::Styler;
+use inquire::{Confirm, Select, Text};
 use std::io::{self, BufRead, Write};
 
-pub struct StdinPrompt {
-    bold: Styler,
-}
-
-impl StdinPrompt {
-    pub fn new(color: bool) -> Self {
-        let bold = if color {
-            Styler::default().bold(true)
-        } else {
-            Styler::default()
-        };
-
-        Self { bold }
-    }
-}
+#[derive(Default)]
+pub struct StdinPrompt {}
 
 impl StdinPrompt {
     pub fn put_msg(msg: &str) -> Result<()> {
@@ -35,13 +22,17 @@ impl StdinPrompt {
         allow_empty: bool,
         allowed_values: Option<&[&str]>,
     ) -> Result<String> {
-        Self::put_msg(msg)?;
+        let text = match allowed_values {
+            Some(allowed) => {
+                let text = Select::new(msg, allowed.to_vec())
+                    .with_vim_mode(true)
+                    .prompt()?;
+                text.to_string()
+            }
+            None => Text::new(msg).prompt()?,
+        };
 
-        let stdin = io::stdin();
-        let mut buf = String::new();
-        stdin.read_line(&mut buf)?;
-
-        match buf.trim() {
+        match text.trim() {
             "" => {
                 if allow_empty {
                     Ok(String::new())
@@ -50,17 +41,7 @@ impl StdinPrompt {
                     self.line(msg, allow_empty, allowed_values)
                 }
             }
-            s => match allowed_values {
-                Some(values) => {
-                    if values.contains(&s) {
-                        Ok(s.to_string())
-                    } else {
-                        Self::put_msg("Invalid value. Try again.\n")?;
-                        self.line(msg, allow_empty, allowed_values)
-                    }
-                }
-                None => Ok(s.to_string()),
-            },
+            s => Ok(s.to_string()),
         }
     }
 
@@ -82,23 +63,7 @@ impl StdinPrompt {
     }
 
     pub fn confirm(&self, msg: &str, default_no: bool) -> Result<bool> {
-        let (query, default_answer) = if default_no {
-            (format!("(y/{})", self.bold.style("[n]")), false)
-        } else {
-            (format!("({}/n)", self.bold.style("[y]")), true)
-        };
-
-        let new = format!("{msg} {query} ");
-        let line = self.line(&new, true, None)?;
-
-        match line.trim().to_lowercase().as_str() {
-            "y" | "yes" => Ok(true),
-            "n" | "no" => Ok(false),
-            "" => Ok(default_answer),
-            _ => {
-                Self::put_msg("Invalid answer, try again.\n")?;
-                self.confirm(msg, default_no)
-            }
-        }
+        let ok = Confirm::new(msg).with_default(!default_no).prompt()?;
+        Ok(ok)
     }
 }

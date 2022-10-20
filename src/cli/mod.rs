@@ -29,7 +29,7 @@ impl Cli {
         Self {
             root,
             service,
-            prompt: StdinPrompt::new(true),
+            prompt: StdinPrompt::default(),
             formatter: Box::new(TableFormatter::new(true)),
             blue_styler: Styler::default().fg(Color::Blue),
             bold_styler: Styler::default().bold(true),
@@ -45,7 +45,7 @@ impl Cli {
 
         match matches.subcommand() {
             None => self.handle_default().await?,
-            Some(("get", sub_matches)) => self.handle_get(sub_matches).await?,
+            Some(("show", sub_matches)) => self.handle_get(sub_matches).await?,
             Some(("list", sub_matches)) => self.handle_list(sub_matches).await?,
             Some(("add", sub_matches)) => self.handle_add(sub_matches).await?,
             Some(("remove", sub_matches)) => self.handle_remove(sub_matches).await?,
@@ -146,15 +146,14 @@ impl Cli {
             None => match self
                 .prompt
                 .line(
-                    &format!(
-                        "priority ({}/{}/{}/{})> ",
-                        self.blue_styler.style("low"),
-                        self.bold_styler.style("[normal]"),
-                        self.yellow_styler.style("high"),
-                        self.red_styler.style("critical")
-                    ),
+                    "priority",
                     true,
-                    Some(&["low", "normal", "high", "critical"]),
+                    Some(&[
+                        &self.bold_styler.style("normal"),
+                        &self.blue_styler.style("low"),
+                        &self.yellow_styler.style("high"),
+                        &self.red_styler.style("critical"),
+                    ]),
                 )?
                 .as_str()
             {
@@ -162,6 +161,7 @@ impl Cli {
                 s => Prio::try_from(s.to_string())?,
             },
         };
+        log::info!("Priority: {}", &prio);
 
         let description = match matches.value_of("description") {
             Some(s) => s.to_string(),
@@ -323,7 +323,7 @@ impl Cli {
                 self.service.remove_todo(&id).await?;
             } else {
                 let msg = format!(
-                    "{} TODO with ID {}",
+                    "{} todo with ID {}",
                     self.red_styler.style("Remove"),
                     self.green_styler.style(&id.to_string())
                 );

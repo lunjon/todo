@@ -81,3 +81,9 @@ impl From<serde_json::Error> for Error {
         Self::DataError(format!("failed to (de)serialize: {}", err))
     }
 }
+
+impl From<inquire::InquireError> for Error {
+    fn from(_: inquire::InquireError) -> Self {
+        todo!()
+    }
+}

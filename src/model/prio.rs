@@ -70,13 +70,19 @@ impl TryFrom<&str> for Prio {
     type Error = Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "low" => Ok(Prio::Low),
-            "normal" => Ok(Prio::Normal),
-            "high" => Ok(Prio::High),
-            "critical" => Ok(Prio::Critical),
-            _ => Err(Error::ArgError(format!("invalid prio value: {value}"))),
+        // Value may contain styling, hence use of contains here
+        let pairs = [
+            ("low", Prio::Low),
+            ("normal", Prio::Normal),
+            ("high", Prio::High),
+            ("critical", Prio::Critical),
+        ];
+        for (name, prio) in pairs {
+            if value.contains(name) {
+                return Ok(prio);
+            }
         }
+        Err(Error::ArgError(format!("invalid prio value: {value}")))
     }
 }
 

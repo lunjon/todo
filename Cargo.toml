@@ -23,3 +23,4 @@ sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "migrate", "sqlit
 log = "0.4"
 env_logger = "0.9"
 crossterm = "0.23"
+inquire = "0.4"

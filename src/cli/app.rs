@@ -22,7 +22,7 @@ default behaviour of the list command without any options.",
                 .long("no-colors")
                 .required(false),
         )
-        .subcommand(get())
+        .subcommand(show())
         .subcommand(list())
         .subcommand(add())
         .subcommand(done())
@@ -37,8 +37,8 @@ default behaviour of the list command without any options.",
         )
 }
 
-fn get() -> Command<'static> {
-    Command::new("get")
+fn show() -> Command<'static> {
+    Command::new("show")
         .about("Get more details about a TODO.")
         .arg(
             Arg::new("id")
