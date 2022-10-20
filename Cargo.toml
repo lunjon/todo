@@ -1,6 +1,6 @@
 [package]
 name = "todo"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -22,3 +22,4 @@ tokio = { version = "1", features = ["full"] }
 sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "migrate", "sqlite" ] }
 log = "0.4"
 env_logger = "0.9"
+crossterm = "0.23"

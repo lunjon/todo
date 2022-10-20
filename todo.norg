@@ -10,7 +10,3 @@ Features, fixes, changes, etc. to implement in the CLI.
   - Add Starship prompt support.
 
 * Fix
-  - [x] Updating a TODO with an unknown context gives an ugly error
-  from the DB.
-  - [x] Style: use default color codes. Red, green, blue, etc. have their own codes
-  that can be used instead of setting RGB values.

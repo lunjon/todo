@@ -1,6 +1,4 @@
-default: fmt check test
-
-all: default lint
+default: fmt check test lint
 
 check:
     cargo check

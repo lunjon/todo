@@ -1,12 +1,10 @@
 use core::fmt;
+use crossterm::style::Stylize;
 
 /// Trait for displaying with styling.
 pub trait StyleDisplay: fmt::Display {
     fn style(&self) -> String;
 }
-
-/// Based on:
-/// https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 
 pub enum Color {
     Red,
@@ -15,19 +13,6 @@ pub enum Color {
     Blue,
     Magenta,
     Cyan,
-}
-
-impl Color {
-    fn rgb(&self) -> &'static str {
-        match self {
-            Color::Red => "31",
-            Color::Green => "32",
-            Color::Yellow => "33",
-            Color::Blue => "34",
-            Color::Magenta => "35",
-            Color::Cyan => "36",
-        }
-    }
 }
 
 // TODO: add builder
@@ -56,29 +41,26 @@ impl Styler {
     }
 
     pub fn style(&self, s: &str) -> String {
-        let mut codes: Vec<&str> = Vec::new();
-
-        if let Some(fg) = &self.fg {
-            codes.push("38"); // Set foreground color
-            codes.push("2");
-            let c = fg.rgb();
-            codes.push(c);
-        }
-
-        if self.bold {
-            codes.push("1");
-        }
-
-        if self.underline {
-            codes.push("4");
-        }
-
-        if codes.is_empty() {
+        if !(self.bold || self.underline) && self.fg.is_none() {
             return s.to_string();
         }
 
-        let values = codes.join(";");
-        format!("\x1b[{}m{}\x1b[0m", values, s)
+        let c = if let Some(fg) = &self.fg {
+            match fg {
+                Color::Red => s.red(),
+                Color::Green => s.green(),
+                Color::Yellow => s.yellow(),
+                Color::Blue => s.blue(),
+                Color::Magenta => s.magenta(),
+                Color::Cyan => s.cyan(),
+            }
+        } else {
+            s.white()
+        };
+
+        let c = if self.bold { c.bold() } else { c };
+        let c = if self.underline { c.underlined() } else { c };
+        format!("{c}")
     }
 }
 
