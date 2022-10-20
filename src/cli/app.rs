@@ -33,7 +33,7 @@ default behaviour of the list command without any options.",
         .subcommand(
             Command::new("history")
                 .alias("hist")
-                .about("Shows an history of events for added and updated TODOs."),
+                .about("Shows an history of events for TODOs."),
         )
 }
 
@@ -51,13 +51,11 @@ fn show() -> Command<'static> {
 fn list() -> Command<'static> {
     Command::new("list")
         .alias("ls")
-        .about("List TODOs. Defaults to only listing TODOs with status != new.")
+        .about("List TODOs. Defaults to only listing TODOs with status != done.")
         .long_about(
-            "List TODOs. Defaults to only listing TODOs with status != new
+            "List TODOs. Defaults to only listing TODOs with status != done
 and in the current context (if set). To get more details about
-a TODO use the sub-command 'get' (todo help get).
-
-To include all statuses use --status=any.",
+a TODO use the sub-command 'get'.",
         )
         .arg(
             Arg::new("all")
@@ -78,7 +76,7 @@ To include all statuses use --status=any.",
         .arg(
             Arg::new("context")
                 .long("context")
-                .help("Filter on context. Defaults to only including current context.")
+                .help("Filter on context. Defaults to only those in current context.")
                 .takes_value(true),
         )
         .arg(
@@ -86,7 +84,7 @@ To include all statuses use --status=any.",
                 .long("tags")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("Filter on tags. Any matching tag is considered a match, i.e OR between tags not AND."),
+                .help("Filter on tags. Any matching tag is considered a match."),
         )
 }
 
@@ -97,8 +95,7 @@ pub fn add() -> Command<'static> {
             "Adds a new TODO. Required parameters not passed via options are
 queried interactively like so:
   > required
-  ? optional, can be omitted
-",
+  ? optional",
         )
         .arg(
             Arg::new("title")
@@ -132,7 +129,7 @@ queried interactively like so:
 
 pub fn update() -> Command<'static> {
     Command::new("update")
-        .about("Updates a TODO. Only changes fields provided in the options.")
+        .about("Updates a TODO. Only updates fields provided in the options.")
         .arg(
             Arg::new("id")
                 .takes_value(true)
@@ -209,11 +206,7 @@ To update other fields use the 'update' command.",
             Arg::new("ids")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("IDs of the TODOs to set.")
-                .long_help(
-                    "IDs of the TODOs to set as done.
-Only valid IDs of type unsigned integers will be considered.",
-                ),
+                .help("IDs of the TODOs to remove. Only valid IDs will be considered."),
         )
 }
 
@@ -225,11 +218,7 @@ fn remove() -> Command<'static> {
             Arg::new("ids")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("IDs of the TODOs to remove.")
-                .long_help(
-                    "IDs of the TODOs to remove.
-Only valid IDs of type unsigned integers will be considered.",
-                ),
+                .help("IDs of the TODOs to remove. Only valid IDs will be considered."),
         )
         .arg(
             Arg::new("yes")

@@ -138,7 +138,7 @@ impl Cli {
     async fn handle_add(&self, matches: &ArgMatches) -> Result<()> {
         let title = match matches.value_of("title") {
             Some(s) => s.to_string(),
-            None => self.prompt.line("title> ", false, None)?,
+            None => self.prompt.line("title>", false, None)?,
         };
 
         let prio = match matches.value_of("prio") {
@@ -165,12 +165,12 @@ impl Cli {
 
         let description = match matches.value_of("description") {
             Some(s) => s.to_string(),
-            None => self.prompt.lines("description? ")?,
+            None => self.prompt.lines("description?")?,
         };
 
         let tags = match matches.values_of("tags") {
             Some(s) => s.map(|s| s.to_string()).collect::<Vec<String>>().join(" "),
-            None => self.prompt.line("tags? ", true, None)?,
+            None => self.prompt.line("tags?", true, None)?,
         };
         let tags = match Tags::try_from(tags) {
             Ok(tags) => tags,
@@ -277,8 +277,7 @@ impl Cli {
                             return Ok(());
                         }
 
-                        let context = inquire::Select::new("Select context", contexts).prompt()?;
-                        context
+                        inquire::Select::new("Select context", contexts).prompt()?
                     }
                 };
 
