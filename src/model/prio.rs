@@ -54,15 +54,14 @@ impl fmt::Display for Prio {
 }
 
 impl StyleDisplay for Prio {
-    fn style(&self) -> String {
+    fn styler(&self) -> Styler {
         let styler = Styler::default().bold(true);
-        let styler = match self {
+        match self {
             Prio::Low => styler.fg(Color::Blue),
             Prio::Normal => styler,
             Prio::High => styler.fg(Color::Yellow),
             Prio::Critical => styler.fg(Color::Red),
-        };
-        styler.style(&self.to_string())
+        }
     }
 }
 

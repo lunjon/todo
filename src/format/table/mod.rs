@@ -1,5 +1,3 @@
-use self::col::ColFormatter;
-
 use super::Formatter;
 use crate::model::{Event, Todo};
 use chrono::NaiveDateTime;
@@ -8,10 +6,11 @@ mod col;
 #[cfg(test)]
 mod tests;
 
-use col::{Col, EventColFormatter, HeaderColFormatter, TodoColFormatter};
+use col::Col;
 
 const ID_COL_WIDTH: usize = 3;
 const STATUS_COL_WIDTH: usize = 8;
+const PRIO_COL_WIDTH: usize = 10;
 const TITLE_COL_WIDTH: usize = 50;
 
 const ACTION_COL_WIDTH: usize = 8;
@@ -61,64 +60,51 @@ fn truncate(s: &str, size: usize) -> String {
 }
 
 /// Formats a list of todos into a table.
-pub struct TableFormatter {
-    header_formatter: HeaderColFormatter,
-    todo_formatter: TodoColFormatter,
-    event_formatter: EventColFormatter,
-}
+pub struct TableFormatter {}
 
 impl TableFormatter {
     pub fn new(_color: bool) -> Self {
-        let header_formatter = HeaderColFormatter::default();
-        let todo_formatter = TodoColFormatter::default();
-        let event_formatter = EventColFormatter::default();
-
-        Self {
-            todo_formatter,
-            event_formatter,
-            header_formatter,
-        }
+        Self {}
     }
 
     fn todo_table_header(&self) -> String {
         let header = vec![
-            Col::new(ID_COL_WIDTH, " ID".to_string(), Align::Left),
-            Col::new(STATUS_COL_WIDTH, "Status".to_string(), Align::Left),
-            Col::new(TITLE_COL_WIDTH, "Title".to_string(), Align::Left),
+            Col::new(ID_COL_WIDTH, &" ID".to_string(), Align::Left),
+            Col::new(PRIO_COL_WIDTH, &"Priority".to_string(), Align::Left),
+            Col::new(STATUS_COL_WIDTH, &"Status".to_string(), Align::Left),
+            Col::new(TITLE_COL_WIDTH, &"Title".to_string(), Align::Left),
         ];
 
-        format_cols(&header, &self.header_formatter)
+        format_row(&header)
     }
 
     fn event_table_header(&self) -> String {
         let header = vec![
-            Col::new(ID_COL_WIDTH, " ID".to_string(), Align::Left),
-            Col::new(ACTION_COL_WIDTH, "Action".to_string(), Align::Center),
-            Col::new(TIMESTAMP_COL_WIDTH, "Timestamp".to_string(), Align::Left),
-            Col::new(DETAILS_COL_WIDTH, "Details".to_string(), Align::Left),
+            Col::new(ID_COL_WIDTH, &" ID".to_string(), Align::Left),
+            Col::new(ACTION_COL_WIDTH, &"Action".to_string(), Align::Center),
+            Col::new(TIMESTAMP_COL_WIDTH, &"Timestamp".to_string(), Align::Left),
+            Col::new(DETAILS_COL_WIDTH, &"Details".to_string(), Align::Left),
         ];
 
-        format_cols(&header, &self.header_formatter)
+        format_row(&header)
     }
 
-    // ID  | Status | Title
+    // ID | Prio | Status | Title
     fn map_todo(todo: &Todo) -> Vec<Col> {
-        let id = Col::new(ID_COL_WIDTH, format!(" {}", todo.id), Align::Left);
-        let title = Col::new(TITLE_COL_WIDTH, todo.title.to_string(), Align::Left);
-        let status = Col::new(STATUS_COL_WIDTH, todo.status.to_string(), Align::Left);
-        vec![id, status, title]
+        let id = Col::new(ID_COL_WIDTH, &format!(" {}", todo.id), Align::Left);
+        let prio = Col::new(PRIO_COL_WIDTH, &todo.prio, Align::Left);
+        let status = Col::new(STATUS_COL_WIDTH, &todo.status, Align::Left);
+        let title = Col::new(TITLE_COL_WIDTH, &todo.title, Align::Left);
+        vec![id, prio, status, title]
     }
 
     // ID  | Action  | Timestamp | Details
     fn map_event(event: &Event) -> Vec<Col> {
-        let id = Col::new(ID_COL_WIDTH, format!(" {}", event.id), Align::Left);
-        let action = Col::new(ACTION_COL_WIDTH, event.action.to_string(), Align::Center);
-
+        let id = Col::new(ID_COL_WIDTH, &format!(" {}", event.id), Align::Left);
+        let action = Col::new(ACTION_COL_WIDTH, &event.action, Align::Center);
         let datetime = NaiveDateTime::from_timestamp(event.timestamp, 0);
-        let datetime = Col::new(TIMESTAMP_COL_WIDTH, datetime.to_string(), Align::Left);
-
-        let details = Col::new(DETAILS_COL_WIDTH, event.kind.to_string(), Align::Left);
-
+        let datetime = Col::new(TIMESTAMP_COL_WIDTH, &datetime.to_string(), Align::Left);
+        let details = Col::new(DETAILS_COL_WIDTH, &event.kind, Align::Left);
         vec![id, action, datetime, details]
     }
 }
@@ -128,7 +114,7 @@ impl Formatter for TableFormatter {
         let table = todos
             .iter()
             .map(Self::map_todo)
-            .map(|cols| format_cols(&cols, &self.todo_formatter))
+            .map(|cols| format_row(&cols))
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -143,7 +129,7 @@ impl Formatter for TableFormatter {
         let table = events
             .iter()
             .map(Self::map_event)
-            .map(|cols| format_cols(&cols, &self.event_formatter))
+            .map(|cols| format_row(&cols))
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -151,15 +137,14 @@ impl Formatter for TableFormatter {
     }
 }
 
-pub fn format_cols<F: ColFormatter>(cols: &[Col], f: &F) -> String {
+pub fn format_row(cols: &[Col]) -> String {
     let height = cols.iter().map(|col| col.height()).max().unwrap_or(0);
 
     let mut rows: Vec<String> = Vec::new();
     for row in 0..height {
         let mut curr: Vec<String> = Vec::new();
-        for (i, col) in cols.iter().enumerate() {
+        for col in cols {
             let s = col.nth(row);
-            let s = f.format(i, &s);
             curr.push(s);
         }
 

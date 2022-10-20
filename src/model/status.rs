@@ -25,14 +25,13 @@ impl fmt::Display for Status {
 }
 
 impl StyleDisplay for Status {
-    fn style(&self) -> String {
+    fn styler(&self) -> Styler {
         let styler = Styler::default().bold(true);
-        let styler = match self {
+        match self {
             Status::New => styler,
             Status::Started => styler.fg(Color::Blue),
             Status::Done => styler.fg(Color::Green),
-        };
-        styler.style(&self.to_string())
+        }
     }
 }
 

@@ -1,5 +1,8 @@
 use super::{Todo, ID};
-use crate::error::Error;
+use crate::{
+    error::Error,
+    style::{StyleDisplay, Styler},
+};
 use core::fmt;
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +20,12 @@ impl fmt::Display for Action {
             Action::Update => write!(f, "update"),
             Action::Remove => write!(f, "remove"),
         }
+    }
+}
+
+impl StyleDisplay for Action {
+    fn styler(&self) -> crate::style::Styler {
+        Styler::default()
     }
 }
 
@@ -126,6 +135,12 @@ impl fmt::Display for Kind {
                 }
             }
         }
+    }
+}
+
+impl StyleDisplay for Kind {
+    fn styler(&self) -> Styler {
+        Styler::default()
     }
 }
 

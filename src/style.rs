@@ -3,7 +3,17 @@ use crossterm::style::Stylize;
 
 /// Trait for displaying with styling.
 pub trait StyleDisplay: fmt::Display {
-    fn style(&self) -> String;
+    fn styler(&self) -> Styler;
+
+    fn style(&self) -> String {
+        self.styler().style(&self.to_string())
+    }
+}
+
+impl StyleDisplay for String {
+    fn styler(&self) -> Styler {
+        Styler::default()
+    }
 }
 
 pub enum Color {
