@@ -268,9 +268,22 @@ impl Cli {
                 }
             }
             Some(("set", sub_matches)) => {
-                let context = sub_matches.value_of("name").unwrap();
-                self.service.set_context(context).await?;
-                println!("Context set to {}.", self.green_styler.style(context));
+                let context = match sub_matches.value_of("name") {
+                    Some(name) => name.to_string(),
+                    None => {
+                        let contexts = self.service.list_contexts().await?;
+                        if contexts.is_empty() {
+                            println!("No contexts created.");
+                            return Ok(());
+                        }
+
+                        let context = inquire::Select::new("Select context", contexts).prompt()?;
+                        context
+                    }
+                };
+
+                self.service.set_context(&context).await?;
+                println!("Context set to {}.", self.green_styler.style(&context));
             }
             Some(("unset", _)) => {
                 self.service.unset_context().await?;
