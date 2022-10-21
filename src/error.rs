@@ -5,25 +5,38 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    ArgError(String),
-    ConfigError(String),
-    DataError(String),
-    IOError(String),
+    General(String),
     NotFound(Option<String>),
 }
 
-use Error::*;
+impl Error {
+    pub fn new(msg: String) -> Self {
+        Self::General(msg)
+    }
+}
+
+#[macro_export]
+macro_rules! err {
+    ($fmt:expr) => {
+        {
+            Err($crate::error::Error::new($fmt.to_string()))
+        }
+    };
+    ($fmt:expr, $($e:expr),*) => {
+        {
+            let s = format!($fmt, $($e)*);
+            Err($crate::error::Error::new(s))
+        }
+    };
+}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ArgError(s) => write!(f, "argument: {s}"),
-            ConfigError(s) => write!(f, "config: {s}"),
-            DataError(s) => write!(f, "data: {s}"),
-            IOError(s) => write!(f, "i/o: {s}"),
-            NotFound(v) => match v {
-                Some(id) => write!(f, "identifier {id} was not found"),
-                None => write!(f, "provided ID was not found"),
+            Error::General(err) => write!(f, "{}", err),
+            Error::NotFound(opt) => match opt {
+                Some(id) => write!(f, "not found: {}", id),
+                None => write!(f, "not found"),
             },
         }
     }
@@ -31,19 +44,19 @@ impl fmt::Display for Error {
 
 impl From<Infallible> for Error {
     fn from(err: Infallible) -> Self {
-        ArgError(err.to_string())
+        Self::new(err.to_string())
     }
 }
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
-        IOError(err.to_string())
+        Self::new(err.to_string())
     }
 }
 
 impl From<str::Utf8Error> for Error {
     fn from(err: str::Utf8Error) -> Self {
-        DataError(err.to_string())
+        Self::new(err.to_string())
     }
 }
 
@@ -61,7 +74,7 @@ pub fn map_sqlx_error(error: sqlx::Error) -> Error {
             return if error.to_string().contains("no rows returned by a query") {
                 Error::NotFound(None)
             } else {
-                Error::IOError(error.to_string())
+                Error::new(error.to_string())
             }
         }
     };
@@ -70,20 +83,20 @@ pub fn map_sqlx_error(error: sqlx::Error) -> Error {
         Some(code) => match code.to_string().as_str() {
             // FOREIGN KEY constraint failed
             "787" => Error::NotFound(None),
-            _ => Error::IOError(error.to_string()),
+            _ => Error::new(error.to_string()),
         },
-        None => Error::IOError(error.to_string()),
+        None => Error::new(error.to_string()),
     }
 }
 
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Self {
-        Self::DataError(format!("failed to (de)serialize: {}", err))
+        Self::new(err.to_string())
     }
 }
 
 impl From<inquire::InquireError> for Error {
-    fn from(_: inquire::InquireError) -> Self {
-        todo!()
+    fn from(err: inquire::InquireError) -> Self {
+        Error::new(err.to_string())
     }
 }

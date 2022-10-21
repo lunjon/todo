@@ -1,3 +1,4 @@
+use crate::err;
 use crate::error::Error;
 use crate::style::{Color, StyleDisplay, Styler};
 use serde::{Deserialize, Serialize};
@@ -81,7 +82,7 @@ impl TryFrom<&str> for Prio {
                 return Ok(prio);
             }
         }
-        Err(Error::ArgError(format!("invalid prio value: {value}")))
+        err!("invalid prio value: {}", value)
     }
 }
 

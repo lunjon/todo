@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::{err, error::Error};
 use core::fmt;
 use serde::{Deserialize, Serialize};
 
@@ -40,9 +40,7 @@ impl TryFrom<&str> for Tags {
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         let tags: Vec<String> = s.split_whitespace().map(String::from).collect();
         if tags.iter().any(|t| t.len() > 20) {
-            Err(Error::DataError(
-                "invalid tag found: length greater than 20".to_string(),
-            ))
+            err!("invalid tag found: length greater than 20")
         } else {
             Ok(Self { tags })
         }

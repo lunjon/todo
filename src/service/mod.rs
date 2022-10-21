@@ -1,4 +1,5 @@
-use crate::error::{Error, Result};
+use crate::err;
+use crate::error::Result;
 use crate::model::{Action, Event, Kind, Prio, Status, Tags, Todo, ID};
 use crate::repository::Repository;
 use chrono::Local;
@@ -184,9 +185,7 @@ impl Service {
         let context = self.validate_context_name(context)?;
         let contexts = self.list_contexts().await?;
         if contexts.iter().any(|name| name == &context) {
-            return Err(Error::ArgError(format!(
-                "context name already exists: {context}"
-            )));
+            return err!("context name already exists: {}", context);
         }
 
         self.repo.add_context(&context).await?;
@@ -200,9 +199,7 @@ impl Service {
 
         let contexts = self.list_contexts().await?;
         if !contexts.iter().any(|name| name == &context) {
-            return Err(Error::ArgError(format!(
-                "context name not found: {context}"
-            )));
+            return err!("context name not found: {}", context);
         }
 
         let current = self
@@ -282,15 +279,11 @@ impl Service {
     fn validate_context_name(&self, context: &str) -> Result<String> {
         let s = context.trim();
         if s.is_empty() {
-            Err(Error::DataError(format!("invalid context name: {context}")))
+            err!("invalid context name: {}", context)
         } else if s.len() < 2 {
-            Err(Error::DataError(
-                "invalid context name: length less than 2".to_string(),
-            ))
+            err!("invalid context name: length less than 2")
         } else if s.len() > 10 {
-            Err(Error::DataError(
-                "invalid context name: length greater than 10".to_string(),
-            ))
+            err!("invalid context name: length greater than 10")
         } else {
             Ok(s.to_string())
         }

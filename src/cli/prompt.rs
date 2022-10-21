@@ -1,5 +1,5 @@
-use crate::error::{Error, Result};
-use crate::util;
+use crate::error::Result;
+use crate::{err, util};
 use inquire::{Confirm, Select, Text};
 use std::env;
 use std::io::{self, Write};
@@ -67,7 +67,7 @@ impl StdinPrompt {
                 let s = util::read_file(&tmp_file)?;
                 Ok(s)
             }
-            Err(err) => Err(Error::IOError(err.to_string())),
+            Err(err) => err!(err),
         }
     }
 }

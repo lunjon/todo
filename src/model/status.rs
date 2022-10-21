@@ -1,3 +1,4 @@
+use crate::err;
 use crate::error::Error;
 use crate::style::{Color, StyleDisplay, Styler};
 use serde::{Deserialize, Serialize};
@@ -43,7 +44,7 @@ impl TryFrom<&str> for Status {
             "new" => Ok(Status::New),
             "started" | "in-progress" => Ok(Status::Started),
             "done" => Ok(Status::Done),
-            _ => Err(Error::ArgError(format!("unknown status: {value}"))),
+            _ => err!("unknown status: {}", value),
         }
     }
 }

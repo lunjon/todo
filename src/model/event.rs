@@ -1,4 +1,5 @@
 use super::{Todo, ID};
+use crate::err;
 use crate::error::Error;
 use crate::style::{Color, StyleDisplay, Styler};
 use core::fmt;
@@ -40,7 +41,7 @@ impl TryFrom<String> for Action {
             "add" => Ok(Self::Add),
             "update" => Ok(Self::Update),
             "remove" => Ok(Self::Remove),
-            _ => Err(Error::ArgError(format!("invalid action: {}", value))),
+            _ => err!("invalid action: {}", value),
         }
     }
 }

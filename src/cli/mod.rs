@@ -1,4 +1,5 @@
-use crate::error::{Error, Result};
+use crate::err;
+use crate::error::Result;
 use crate::format::{Card, Formatter, TableFormatter};
 use crate::model::{Prio, Status, Tags, ID};
 use crate::service::{ContextFilter, Filter, Service, StatusFilter};
@@ -71,7 +72,7 @@ impl Cli {
             "info" => log::LevelFilter::Info,
             "warn" | "warning" => log::LevelFilter::Warn,
             "err" | "error" => log::LevelFilter::Error,
-            _ => return Err(Error::ArgError(format!("invalid log level: {}", level))),
+            _ => return err!("invalid log level: {}", level),
         };
 
         env_logger::builder().filter(Some("todo"), level).init();
@@ -170,7 +171,7 @@ impl Cli {
         };
         let tags = match Tags::try_from(tags) {
             Ok(tags) => tags,
-            Err(err) => return Err(Error::ArgError(err.to_string())),
+            Err(err) => return err!(err),
         };
 
         let todo = self
@@ -380,7 +381,7 @@ impl Cli {
     fn get_ids(matches: &ArgMatches) -> Result<Vec<ID>> {
         let ids = match matches.values_of("ids") {
             Some(ids) => ids,
-            None => return Err(Error::ArgError("no IDs provided".to_string())),
+            None => return err!("no IDs provided"),
         };
 
         Ok(ids
@@ -394,7 +395,7 @@ impl Cli {
     fn parse_id(id: &str) -> Result<ID> {
         match id.parse::<u16>() {
             Ok(n) => Ok(ID::new(n)),
-            Err(_) => Err(Error::ArgError(format!("invalid ID format: {id}"))),
+            Err(_) => err!("invalid ID format: {}", id),
         }
     }
 }

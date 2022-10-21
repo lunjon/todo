@@ -25,8 +25,6 @@ pub enum Color {
     Cyan,
 }
 
-// TODO: add builder
-
 #[derive(Default)]
 pub struct Styler {
     fg: Option<Color>,

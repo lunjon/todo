@@ -12,7 +12,6 @@ const ID_COL_WIDTH: usize = 3;
 const STATUS_COL_WIDTH: usize = 8;
 const PRIO_COL_WIDTH: usize = 10;
 const TITLE_COL_WIDTH: usize = 50;
-
 const ACTION_COL_WIDTH: usize = 8;
 const TIMESTAMP_COL_WIDTH: usize = 20;
 const DETAILS_COL_WIDTH: usize = 50;

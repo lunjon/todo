@@ -2,7 +2,8 @@ use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use std::path::PathBuf;
 use std::str::FromStr;
 use todo::cli::Cli;
-use todo::error::{Error::*, Result};
+use todo::err;
+use todo::error::Result;
 use todo::repository::Repository;
 use todo::service::Service;
 use todo::style::{Color, Styler};
@@ -13,7 +14,7 @@ async fn main() -> Result<()> {
     let root = init()?;
     let database_uri = match root.to_str() {
         Some(root) => format!("{root}/todo.db"),
-        None => return Err(ConfigError(format!("invalid root path: {:?}", root))),
+        None => return err!("invalid root path: {:?}", root),
     };
 
     // Setup database connection and run migrations
@@ -52,12 +53,12 @@ fn init() -> Result<PathBuf> {
             dir.push("todo");
             dir
         }
-        None => return Err(ConfigError("failed to resolve home directory".to_string())),
+        None => return err!("failed to resolve home directory"),
     };
 
     if !root.exists() {
         std::fs::create_dir_all(&root)?;
-        return Err(ConfigError(format!("initialized new root at {:?}", root)));
+        return err!("initialized new root at {:?}", root);
     }
     Ok(root)
 }

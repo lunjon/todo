@@ -1,3 +1,4 @@
+use crate::err;
 use crate::error::{map_sqlx_error, Error, Result};
 use crate::model::{Action, Event, Prio, Status, Tags, Todo, ID};
 use chrono::{DateTime, Local};
@@ -37,7 +38,7 @@ impl Repository {
             .await;
         match result {
             Ok(todos) => Ok(todos),
-            Err(err) => Err(Error::IOError(err.to_string())),
+            Err(err) => err!(err),
         }
     }
 
