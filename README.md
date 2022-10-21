@@ -12,6 +12,19 @@ Manage your TODOs in your shell environment with ease.
   - Context: group TODOs by context such as work, school, etc.
 - History of events related to TODOs, such as adding, updating and more
 
+### Show case
+<details><summary>Adding</summary>
+<img src="https://user-images.githubusercontent.com/14161483/197285033-c533e38f-faa0-40bb-bb66-982ead139e1c.PNG" />
+</details>
+
+<details><summary>Listing</summary>
+<img src="https://user-images.githubusercontent.com/14161483/197285069-5549c5d6-4a7b-44d8-b29f-c19f5c760687.PNG" />
+</details>
+
+<details><summary>Show</summary>
+<img src="https://user-images.githubusercontent.com/14161483/197285107-a63ad2d3-23a9-424c-be24-982b2321036a.PNG" />
+</details>
+
 ## Installation
 
 If you have rustup (_which you should have_), just use
