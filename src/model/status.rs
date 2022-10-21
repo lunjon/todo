@@ -27,9 +27,9 @@ impl fmt::Display for Status {
 
 impl StyleDisplay for Status {
     fn styler(&self) -> Styler {
-        let styler = Styler::default().bold(true);
+        let styler = Styler::default();
         match self {
-            Status::New => styler,
+            Status::New => styler.fg(Color::Cyan),
             Status::Started => styler.fg(Color::Blue),
             Status::Done => styler.fg(Color::Green),
         }
