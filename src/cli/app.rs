@@ -244,6 +244,8 @@ via the 'context add' sub-command.",
         .subcommand(
             Command::new("add").about("Adds a new context.").arg(
                 Arg::new("name")
+                    .long("name")
+                    .short('n')
                     .takes_value(true)
                     .help("Name of the new context."),
             ),
@@ -251,6 +253,8 @@ via the 'context add' sub-command.",
         .subcommand(
             Command::new("set").about("Set context.").arg(
                 Arg::new("name")
+                    .long("name")
+                    .short('n')
                     .takes_value(true)
                     .help("Name of the context to set."),
             ),
@@ -267,9 +271,10 @@ via the 'context add' sub-command.",
                         .help("Remove all TODOs associated with context."),
                 )
                 .arg(
-                    Arg::new("names")
+                    Arg::new("name")
+                        .long("name")
+                        .short('n')
                         .takes_value(true)
-                        .multiple_values(true)
                         .help("Name of the contexts to remove."),
                 ),
         )
