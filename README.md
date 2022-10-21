@@ -1,13 +1,26 @@
 # ToDo
 
-CLI tool for managing TODOs.
+Manage your TODOs in your shell environment with ease.
 
 ## Features
 
-- Basic and easy management of TODOs.
-- Simple and user-friendly CLI thanks to [clap-rs](https://github.com/clap-rs/clap).
+- Script and user friendly CLI
+- Simple management of TODOs
+- Support concepts such as
+  - Priority: how urgent is this TODO?
+  - Status: current status
+  - Context: group TODOs by context such as work, school, etc.
+- History of events related to TODOs, such as adding, updating and more
 
-## Develop
+## Installation
+
+If you have rustup (_which you should have_), just use
+
+```sh
+cargo install --path .
+```
+
+## Developing
 
 Requirements:
 - Rust v1.59 or later
