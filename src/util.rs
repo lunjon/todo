@@ -1,3 +1,31 @@
+use crate::error::Result;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
+use std::fs;
+use std::io::Read;
+use std::path::Path;
+
+pub fn random_string(size: usize) -> String {
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(size)
+        .map(char::from)
+        .collect()
+}
+
+pub fn try_get_env(name: &str) -> Option<String> {
+    match std::env::var(name) {
+        Ok(v) => Some(v),
+        Err(_) => None,
+    }
+}
+
+pub fn read_file(path: &Path) -> Result<String> {
+    let mut buf = String::new();
+    let mut file = fs::OpenOptions::new().read(true).open(path)?;
+    file.read_to_string(&mut buf)?;
+    Ok(buf)
+}
 pub fn word_chunks(s: &str, size: usize) -> Vec<String> {
     let mut lines = Vec::new();
     for line in s.lines() {

@@ -6,7 +6,7 @@ pub fn build_app() -> Command<'static> {
         .long_about(
             "Use --help option to get detailed help.
 If no sub-command is used it defaults to listing TODOs with the
-default behaviour of the list command without any options.",
+default behaviour of the list command.",
         )
         .arg(
             Arg::new("log")

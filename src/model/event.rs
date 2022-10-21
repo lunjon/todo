@@ -1,8 +1,6 @@
 use super::{Todo, ID};
-use crate::{
-    error::Error,
-    style::{StyleDisplay, Styler},
-};
+use crate::error::Error;
+use crate::style::{Color, StyleDisplay, Styler};
 use core::fmt;
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +23,12 @@ impl fmt::Display for Action {
 
 impl StyleDisplay for Action {
     fn styler(&self) -> crate::style::Styler {
-        Styler::default()
+        let styler = Styler::default();
+        match self {
+            Action::Add => styler.fg(Color::Green),
+            Action::Update => styler.fg(Color::Cyan),
+            Action::Remove => styler.fg(Color::Red),
+        }
     }
 }
 

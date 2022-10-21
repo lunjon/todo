@@ -138,22 +138,21 @@ impl Cli {
     async fn handle_add(&self, matches: &ArgMatches) -> Result<()> {
         let title = match matches.value_of("title") {
             Some(s) => s.to_string(),
-            None => self.prompt.line("title>", false, None)?,
+            None => self.prompt.line("title>", false)?,
         };
 
         let prio = match matches.value_of("prio") {
             Some(s) => Prio::try_from(s.to_string())?,
             None => match self
                 .prompt
-                .line(
+                .select(
                     "priority",
-                    true,
-                    Some(&[
-                        &self.bold_styler.style("normal"),
-                        &self.blue_styler.style("low"),
-                        &self.yellow_styler.style("high"),
-                        &self.red_styler.style("critical"),
-                    ]),
+                    vec![
+                        self.bold_styler.style("normal"),
+                        self.blue_styler.style("low"),
+                        self.yellow_styler.style("high"),
+                        self.red_styler.style("critical"),
+                    ],
                 )?
                 .as_str()
             {
@@ -163,14 +162,11 @@ impl Cli {
         };
         log::info!("Priority: {}", &prio);
 
-        let description = match matches.value_of("description") {
-            Some(s) => s.to_string(),
-            None => self.prompt.lines("description?")?,
-        };
+        let description = self.get_description(matches)?;
 
         let tags = match matches.values_of("tags") {
             Some(s) => s.map(|s| s.to_string()).collect::<Vec<String>>().join(" "),
-            None => self.prompt.line("tags?", true, None)?,
+            None => self.prompt.line("tags?", true)?,
         };
         let tags = match Tags::try_from(tags) {
             Ok(tags) => tags,
@@ -345,6 +341,27 @@ impl Cli {
             }
         }
         Ok(())
+    }
+
+    fn get_description(&self, matches: &ArgMatches) -> Result<String> {
+        if let Some(s) = matches.value_of("description") {
+            log::info!("Using description from flag");
+            return Ok(s.to_string());
+        }
+
+        let options = vec![
+            "Open editor".to_string(),
+            "Prompt".to_string(),
+            "Skip".to_string(),
+        ];
+
+        let option = self.prompt.select("Description", options)?;
+        match option.as_str() {
+            "Open editor" => self.prompt.editor(),
+            "Prompt" => self.prompt.line("Enter description", true),
+            "Skip" => Ok(String::new()),
+            _ => unreachable!(),
+        }
     }
 
     fn get_ids(matches: &ArgMatches) -> Result<Vec<ID>> {
