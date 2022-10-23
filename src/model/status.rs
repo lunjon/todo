@@ -13,14 +13,19 @@ pub enum Status {
     Started,
     /// The todo is completed.
     Done,
+    /// This is blocked by another todo.
+    Blocked,
 }
+
+use Status::*;
 
 impl fmt::Display for Status {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Status::New => write!(f, "new"),
-            Status::Started => write!(f, "started"),
-            Status::Done => write!(f, "done"),
+            New => write!(f, "new"),
+            Started => write!(f, "started"),
+            Done => write!(f, "done"),
+            Blocked => write!(f, "blocked"),
         }
     }
 }
@@ -29,9 +34,10 @@ impl StyleDisplay for Status {
     fn styler(&self) -> Styler {
         let styler = Styler::default();
         match self {
-            Status::New => styler.fg(Color::Cyan),
-            Status::Started => styler.fg(Color::Blue),
-            Status::Done => styler.fg(Color::Green),
+            New => styler.fg(Color::Cyan),
+            Started => styler.fg(Color::Blue),
+            Done => styler.fg(Color::Green),
+            Blocked => styler.fg(Color::Red),
         }
     }
 }
@@ -40,10 +46,11 @@ impl TryFrom<&str> for Status {
     type Error = Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "new" => Ok(Status::New),
-            "started" | "in-progress" => Ok(Status::Started),
-            "done" => Ok(Status::Done),
+        match value.to_lowercase().trim() {
+            "new" => Ok(New),
+            "started" | "in-progress" => Ok(Started),
+            "done" => Ok(Done),
+            "blocked" => Ok(Blocked),
             _ => err!("unknown status: {}", value),
         }
     }
@@ -64,9 +71,10 @@ mod tests {
     #[test]
     fn try_from() {
         let cases = vec![
-            ("new", Status::New),
-            ("started", Status::Started),
-            ("done", Status::Done),
+            ("new", New),
+            ("started", Started),
+            ("done", Done),
+            ("blocked", Blocked),
         ];
         for (s, expected) in cases {
             let actual = Status::try_from(s).unwrap();

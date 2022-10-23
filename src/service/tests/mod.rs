@@ -13,10 +13,14 @@ mod remove;
 mod update;
 
 struct Fixture {
-    service: Service,
+    svc: Service,
+    // Todos added for testing: todo_<status>
     todo_new: Todo,
     todo_done: Todo,
-    test_context_name: String,
+    todo_started: Todo,
+    todo_blocked: Todo, // Blocked by started
+    /// Name of an added context
+    ctx: String,
 }
 
 impl Fixture {
@@ -33,34 +37,62 @@ impl Fixture {
         let test_context_name = String::from("test");
 
         let service = Service::new(Repository::new(pool));
-        let (todo_new, todo_done, _) = tokio::join!(
+
+        // Setup initial data
+        let (todo_new, todo_done, todo_started, todo_blocked, _) = tokio::join!(
             service.add_todo(
                 Status::New,
                 Prio::Normal,
                 "New subject".to_string(),
                 "Description.".to_string(),
-                Tags::new(vec!["new".to_string()]),
+                CSV::new(vec!["new".to_string()]),
             ),
             service.add_todo(
                 Status::Done,
                 Prio::Normal,
                 "Done subject".to_string(),
                 "Description.".to_string(),
-                Tags::new(vec!["done".to_string()]),
+                CSV::new(vec!["done".to_string()]),
+            ),
+            service.add_todo(
+                Status::Started,
+                Prio::Normal,
+                "Started something".to_string(),
+                "Description".to_string(),
+                CSV::new(vec!["done".to_string()]),
+            ),
+            service.add_todo(
+                Status::Blocked,
+                Prio::Normal,
+                "Blocked by started".to_string(),
+                "Just blocked".to_string(),
+                CSV::default(),
             ),
             service.add_context(&test_context_name),
         );
 
+        let todo_new = todo_new?;
+        let todo_done = todo_done?;
+        let todo_started = todo_started?;
+        let todo_blocked = todo_blocked?;
+
+        // Add link to blocked
+        let link = Link::Blocks(todo_blocked.id);
+        service.link(todo_started.id, link).await?;
+        let todo_blocked = service.get_todo(&todo_blocked.id).await?;
+
         Ok(Self {
-            service,
-            test_context_name,
-            todo_new: todo_new?,
-            todo_done: todo_done?,
+            svc: service,
+            ctx: test_context_name,
+            todo_new,
+            todo_done,
+            todo_started,
+            todo_blocked,
         })
     }
 
     async fn todo_exists(&self, id: &ID) -> Result<bool> {
-        match self.service.repo.get_todo(id).await {
+        match self.svc.repo.get_todo(id).await {
             Ok(_) => Ok(true),
             Err(_) => Ok(false),
         }
@@ -68,26 +100,19 @@ impl Fixture {
 
     async fn create_todo(&self) -> Result<Todo> {
         let todo = self
-            .service
+            .svc
             .add_todo(
                 Status::New,
                 Prio::Normal,
                 "Subject".to_string(),
                 "Description".to_string(),
-                Tags::default(),
+                CSV::default(),
             )
             .await?;
         Ok(todo)
     }
 
     async fn todo_count(&self) -> Result<usize> {
-        for t in self.service.list_todos(None).await? {
-            log::info!("TEST: {} {:?}", t.id, t.context);
-        }
-        Ok(self.service.list_todos(None).await?.len())
-    }
-
-    async fn event_count(&self) -> Result<usize> {
-        Ok(self.service.list_events().await?.len())
+        Ok(self.svc.list_todos(None).await?.len())
     }
 }

@@ -1,8 +1,8 @@
 use crate::{err, error::Error};
 use core::fmt;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Serialize)]
 pub struct Tags {
     tags: Vec<String>,
 }
@@ -41,6 +41,8 @@ impl TryFrom<&str> for Tags {
         let tags: Vec<String> = s.split_whitespace().map(String::from).collect();
         if tags.iter().any(|t| t.len() > 20) {
             err!("invalid tag found: length greater than 20")
+        } else if tags.len() > 5 {
+            err!("invalid tags: cannot specify more than 5")
         } else {
             Ok(Self { tags })
         }

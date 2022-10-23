@@ -30,11 +30,6 @@ default behaviour of the list command.",
         .subcommand(update())
         .subcommand(remove())
         .subcommand(context())
-        .subcommand(
-            Command::new("history")
-                .alias("hist")
-                .about("Shows an history of events for TODOs."),
-        )
 }
 
 fn show() -> Command<'static> {
@@ -172,6 +167,29 @@ pub fn update() -> Command<'static> {
                 .short('c')
                 .takes_value(true)
                 .help("Sets context of the TODO."),
+        )
+        .arg(
+            Arg::new("link")
+                .long("link")
+                .help("Add a link by type:id.")
+                .long_help(
+                    "Add a link by type:id, like so:
+    blocks:id
+    blocked-by:id
+    relates-to:id
+
+Some links are bi-directional: `a blocks b` implices `b blocked by a`.
+",
+                )
+                .takes_value(true)
+                .multiple_occurrences(true),
+        )
+        .arg(
+            Arg::new("unlink")
+                .long("unlink")
+                .help("Removes a link by type:id. See --link for valid options.")
+                .takes_value(true)
+                .multiple_occurrences(true),
         )
 }
 

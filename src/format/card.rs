@@ -1,4 +1,4 @@
-use crate::model::Todo;
+use crate::model::{Link, Todo, CSV};
 use crate::style::{Color, StyleDisplay, Styler};
 use crate::util::word_chunks;
 
@@ -65,14 +65,15 @@ impl Card {
             lines.push(context);
         }
 
-        let tags = todo.tags.values();
-        if !tags.is_empty() {
-            let tags = format!(
-                "{}:        {}",
-                self.bold_white.style("Tags"),
-                tags.join(", ")
-            );
+        if !todo.tags.is_empty() {
+            let tags = format!("{}:        {}", self.bold_white.style("Tags"), todo.tags,);
             lines.push(tags);
+        }
+
+        if let Some(links) = self.format_links(&todo.links) {
+            for link in links {
+                lines.push(link);
+            }
         }
 
         if let Some(s) = self.format_description(&todo.description) {
@@ -83,6 +84,29 @@ impl Card {
         }
 
         lines.join("\n")
+    }
+
+    fn format_links(&self, links: &CSV<Link>) -> Option<Vec<String>> {
+        if links.is_empty() {
+            return None;
+        }
+
+        let mut lines = Vec::new();
+        let prefix = " ".repeat(INDENT);
+        let values = links.display_values();
+        if let Some(first) = values.first() {
+            lines.push(format!(
+                "{}:       {}",
+                self.bold_white.style("Links"),
+                first
+            ));
+        }
+
+        for value in values.iter().skip(1) {
+            lines.push(format!("{prefix}{value}"));
+        }
+
+        Some(lines)
     }
 
     fn format_description(&self, desc: &str) -> Option<Vec<String>> {
@@ -109,7 +133,7 @@ impl Card {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{Prio, Status, Tags, Todo, ID};
+    use crate::model::{Prio, Status, Todo, CSV, ID};
     use chrono::Local;
 
     #[test]
@@ -121,8 +145,9 @@ mod tests {
             Prio::Normal,
             "".to_string(),
             "".to_string(),
-            Tags::default(),
+            CSV::default(),
             None,
+            CSV::empty(),
         );
 
         let card = Card::new(true);

@@ -5,7 +5,7 @@ use crate::model::Status;
 #[tokio::test]
 async fn list_todos_filter_none() -> Result<()> {
     let fixture = Fixture::setup().await?;
-    let todos = fixture.service.list_todos(None).await?;
+    let todos = fixture.svc.list_todos(None).await?;
     assert!(!todos.is_empty());
     Ok(())
 }
@@ -14,7 +14,7 @@ async fn list_todos_filter_none() -> Result<()> {
 async fn list_todos_filter_status_done() -> Result<()> {
     let fixture = Fixture::setup().await?;
     let filter = Filter::default().status(StatusFilter::Status(Status::Done));
-    let todos = fixture.service.list_todos(Some(filter)).await?;
+    let todos = fixture.svc.list_todos(Some(filter)).await?;
     assert_eq!(todos.len(), 1);
     Ok(())
 }
@@ -22,23 +22,20 @@ async fn list_todos_filter_status_done() -> Result<()> {
 #[tokio::test]
 async fn list_todos_with_context_set() -> Result<()> {
     let fixture = Fixture::setup().await?;
-    fixture
-        .service
-        .set_context(&fixture.test_context_name)
-        .await?;
+    fixture.svc.set_context(&fixture.ctx).await?;
     let expected = fixture
-        .service
+        .svc
         .add_todo(
             Status::New,
             Prio::Normal,
             "Subject".to_string(),
             "Description".to_string(),
-            Tags::default(),
+            CSV::default(),
         )
         .await?;
 
     let filter = Filter::default();
-    if let [actual] = &fixture.service.list_todos(Some(filter)).await?[..] {
+    if let [actual] = &fixture.svc.list_todos(Some(filter)).await?[..] {
         assert_eq!(expected.id, actual.id);
     } else {
         panic!();

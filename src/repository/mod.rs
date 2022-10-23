@@ -1,6 +1,6 @@
 use crate::err;
 use crate::error::{map_sqlx_error, Error, Result};
-use crate::model::{Action, Event, Prio, Status, Tags, Todo, ID};
+use crate::model::{Code, Link, Prio, Status, Todo, CSV, ID};
 use chrono::{DateTime, Local};
 use sqlx::sqlite::{SqlitePool, SqliteRow};
 use sqlx::Row;
@@ -44,8 +44,17 @@ impl Repository {
 
     pub async fn add_todo(&self, todo: Todo) -> Result<Todo> {
         let todo = sqlx::query(
-            "INSERT INTO todos (created, subject, status, prio, description, tags, context) VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING id, created, status, prio, subject, description, tags, context",
+            "INSERT INTO todos (
+                created,
+                subject,
+                status,
+                prio,
+                description,
+                tags,
+                context,
+                links
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id, created, status, prio, subject, description, tags, context, links",
         )
         .bind(todo.created.format("%Y-%m-%d %H:%M:%S %z").to_string())
         .bind(todo.subject)
@@ -54,6 +63,7 @@ impl Repository {
         .bind(todo.description)
         .bind(todo.tags.to_string())
         .bind(todo.context)
+        .bind(todo.links.encode())
         .map(map_todo)
         .fetch_one(&self.pool)
         .await?;
@@ -63,8 +73,8 @@ impl Repository {
 
     pub async fn replace_todo(&self, todo: &Todo) -> Result<()> {
         sqlx::query(
-            "REPLACE INTO todos (id, created, status, prio, subject, description, tags, context)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            "REPLACE INTO todos (id, created, status, prio, subject, description, tags, context, links)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
         )
         .bind(todo.id.to_string())
         .bind(todo.created.format("%Y-%m-%d %H:%M:%S %z").to_string())
@@ -74,6 +84,7 @@ impl Repository {
         .bind(&todo.description)
         .bind(todo.tags.to_string())
         .bind(&todo.context)
+        .bind(todo.links.encode())
         .execute(&self.pool)
         .await?;
         Ok(())
@@ -82,41 +93,13 @@ impl Repository {
     pub async fn remove_todo(&self, id: &ID) -> Result<Todo> {
         let todo = sqlx::query(
             "DELETE FROM todos WHERE id = $1
-            RETURNING id, created, status, prio, subject, description, tags, context",
+            RETURNING id, created, status, prio, subject, description, tags, context, links",
         )
         .bind(id.to_string())
         .map(map_todo)
         .fetch_one(&self.pool)
         .await?;
         Ok(todo)
-    }
-}
-
-// For events.
-impl Repository {
-    pub async fn get_all_events(&self) -> Result<Vec<Event>> {
-        let events = sqlx::query("SELECT * FROM events")
-            .map(map_event)
-            .fetch_all(&self.pool)
-            .await?;
-        Ok(events)
-    }
-
-    pub async fn add_event(&self, event: Event) -> Result<Event> {
-        let json = serde_json::to_string(&event.kind)?;
-        let id = sqlx::query(
-            "INSERT INTO events (action, json, ts) VALUES ($1, $2, $3)
-            RETURNING id",
-        )
-        .bind(event.action.to_string())
-        .bind(json)
-        .bind(event.timestamp)
-        .map(|row| ID::new(row.get("id")))
-        .fetch_one(&self.pool)
-        .await?;
-
-        let event = Event::new(id, event.action, event.kind, event.timestamp);
-        Ok(event)
     }
 }
 
@@ -192,6 +175,12 @@ fn map_todo(row: SqliteRow) -> Todo {
     let prio = Prio::try_from(prio).unwrap();
     let context: Option<String> = row.get("context");
 
+    let links: Option<String> = row.get("links");
+    let links: CSV<Link> = match links {
+        Some(s) => CSV::decode(&s),
+        None => CSV::new(vec![]),
+    };
+
     Todo::new(
         ID::new(row.get("id")),
         created,
@@ -199,20 +188,8 @@ fn map_todo(row: SqliteRow) -> Todo {
         prio,
         row.get("subject"),
         row.get("description"),
-        Tags::try_from(tags).unwrap(),
+        CSV::try_from(tags).unwrap(),
         context,
+        links,
     )
-}
-
-fn map_event(row: SqliteRow) -> Event {
-    let id = ID::new(row.get("id"));
-
-    let action: String = row.get("action");
-    let action = Action::try_from(action).unwrap();
-
-    let json: String = row.get("json");
-    let kind = serde_json::from_str(&json).expect("deserialize event");
-
-    let timestamp = row.get("ts");
-    Event::new(id, action, kind, timestamp)
 }

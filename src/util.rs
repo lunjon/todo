@@ -95,6 +95,5 @@ fn test_word_chunks() {
     assert_eq!(a.len(), 2);
 
     let b = word_chunks(s, 5);
-    dbg!(&b);
     assert_eq!(b.len(), 4);
 }
