@@ -44,11 +44,11 @@ impl Repository {
 
     pub async fn add_todo(&self, todo: Todo) -> Result<Todo> {
         let todo = sqlx::query(
-            "INSERT INTO todos (created, title, status, prio, description, tags, context) VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING id, created, status, prio, title, description, tags, context",
+            "INSERT INTO todos (created, subject, status, prio, description, tags, context) VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id, created, status, prio, subject, description, tags, context",
         )
         .bind(todo.created.format("%Y-%m-%d %H:%M:%S %z").to_string())
-        .bind(todo.title)
+        .bind(todo.subject)
         .bind(todo.status.to_string())
         .bind(todo.prio.to_string())
         .bind(todo.description)
@@ -63,14 +63,14 @@ impl Repository {
 
     pub async fn replace_todo(&self, todo: &Todo) -> Result<()> {
         sqlx::query(
-            "REPLACE INTO todos (id, created, status, prio, title, description, tags, context)
+            "REPLACE INTO todos (id, created, status, prio, subject, description, tags, context)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
         )
         .bind(todo.id.to_string())
         .bind(todo.created.format("%Y-%m-%d %H:%M:%S %z").to_string())
         .bind(todo.status.to_string())
         .bind(todo.prio.to_string())
-        .bind(&todo.title)
+        .bind(&todo.subject)
         .bind(&todo.description)
         .bind(todo.tags.to_string())
         .bind(&todo.context)
@@ -82,7 +82,7 @@ impl Repository {
     pub async fn remove_todo(&self, id: &ID) -> Result<Todo> {
         let todo = sqlx::query(
             "DELETE FROM todos WHERE id = $1
-            RETURNING id, created, status, prio, title, description, tags, context",
+            RETURNING id, created, status, prio, subject, description, tags, context",
         )
         .bind(id.to_string())
         .map(map_todo)
@@ -197,7 +197,7 @@ fn map_todo(row: SqliteRow) -> Todo {
         created,
         Status::try_from(status).unwrap(),
         prio,
-        row.get("title"),
+        row.get("subject"),
         row.get("description"),
         Tags::try_from(tags).unwrap(),
         context,

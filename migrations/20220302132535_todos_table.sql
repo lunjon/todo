@@ -3,7 +3,7 @@ CREATE TABLE todos (
     created TEXT NOT NULL,
     status TEXT NOT NULL,
     prio TEXT NOT NULL,
-    title TEXT NOT NULL,
+    subject TEXT NOT NULL,
     description TEXT NOT NULL,
     tags TEXT,
     context TEXT,

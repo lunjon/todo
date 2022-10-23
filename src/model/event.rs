@@ -89,8 +89,11 @@ impl fmt::Display for Kind {
                 if before.prio != after.prio {
                     changes.push(format!("prio: '{}' -> '{}'", before.prio, after.prio))
                 }
-                if before.title != after.title {
-                    changes.push(format!("title: '{}' -> '{}'", before.title, after.title))
+                if before.subject != after.subject {
+                    changes.push(format!(
+                        "subject: '{}' -> '{}'",
+                        before.subject, after.subject
+                    ))
                 }
                 if before.description != after.description {
                     changes.push("description: <...>".to_string());

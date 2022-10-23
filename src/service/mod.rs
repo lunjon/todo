@@ -44,7 +44,7 @@ impl Service {
         &self,
         status: Status,
         prio: Prio,
-        title: String,
+        subject: String,
         description: String,
         tags: Tags,
     ) -> Result<Todo> {
@@ -56,7 +56,7 @@ impl Service {
             now,
             status,
             prio,
-            title,
+            subject,
             description,
             tags,
             context,
@@ -78,7 +78,7 @@ impl Service {
     pub async fn update_todo(
         &self,
         id: &ID,
-        title: Option<String>,
+        subject: Option<String>,
         status: Option<Status>,
         prio: Option<Prio>,
         description: Option<String>,
@@ -87,9 +87,9 @@ impl Service {
         let mut after = self.repo.get_todo(id).await?;
         let before = after.clone();
 
-        if let Some(s) = title {
-            after.title = s;
-            log::info!("Service.update_todo: updating title");
+        if let Some(s) = subject {
+            after.subject = s;
+            log::info!("Service.update_todo: updating subject");
         }
         if let Some(s) = status {
             after.status = s;

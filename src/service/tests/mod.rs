@@ -37,14 +37,14 @@ impl Fixture {
             service.add_todo(
                 Status::New,
                 Prio::Normal,
-                "New title".to_string(),
+                "New subject".to_string(),
                 "Description.".to_string(),
                 Tags::new(vec!["new".to_string()]),
             ),
             service.add_todo(
                 Status::Done,
                 Prio::Normal,
-                "Done title".to_string(),
+                "Done subject".to_string(),
                 "Description.".to_string(),
                 Tags::new(vec!["done".to_string()]),
             ),
@@ -72,7 +72,7 @@ impl Fixture {
             .add_todo(
                 Status::New,
                 Prio::Normal,
-                "Title".to_string(),
+                "Subject".to_string(),
                 "Description".to_string(),
                 Tags::default(),
             )

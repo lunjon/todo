@@ -15,8 +15,8 @@ pub struct Todo {
     pub status: Status,
     /// The priority of this todo.
     pub prio: Prio,
-    // Title is a short summary of this todo.
-    pub title: String,
+    // Subject is a short summary of this todo.
+    pub subject: String,
     /// Description can contain more details about this todo.
     pub description: String,
     /// Tags can include certain attributes for a todo.
@@ -34,7 +34,7 @@ impl Todo {
         created: DateTime<Local>,
         status: Status,
         prio: Prio,
-        title: String,
+        subject: String,
         description: String,
         tags: Tags,
         context: Option<String>,
@@ -44,7 +44,7 @@ impl Todo {
             created,
             status,
             prio,
-            title,
+            subject,
             description,
             tags,
             context,

@@ -32,27 +32,27 @@ async fn update_status() -> Result<()> {
     let after = fixture.event_count().await?;
     assert!(after > before);
 
-    assert_eq!(todo.title, fixture.todo_new.title);
+    assert_eq!(todo.subject, fixture.todo_new.subject);
     assert_eq!(todo.status, Status::Done);
     assert_eq!(todo.description, fixture.todo_new.description);
     Ok(())
 }
 
 #[tokio::test]
-async fn update_title() -> Result<()> {
+async fn update_subject() -> Result<()> {
     let fixture = Fixture::setup().await?;
     let todo = fixture
         .service
         .update_todo(
             &fixture.todo_new.id,
-            Some("Updated title".to_string()),
+            Some("Updated subject".to_string()),
             Some(Status::Done),
             None,
             None,
             None,
         )
         .await?;
-    assert_eq!(todo.title, "Updated title");
+    assert_eq!(todo.subject, "Updated subject");
     assert_eq!(todo.status, Status::Done);
     Ok(())
 }

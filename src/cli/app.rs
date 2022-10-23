@@ -98,10 +98,10 @@ queried interactively like so:
   ? optional",
         )
         .arg(
-            Arg::new("title")
-                .long("title")
+            Arg::new("subject")
+                .long("subject")
                 .short('t')
-                .help("Title for the TODO.")
+                .help("Subject for the TODO.")
                 .takes_value(true),
         )
         .arg(
@@ -137,11 +137,11 @@ pub fn update() -> Command<'static> {
                 .help("ID of the TODO to update."),
         )
         .arg(
-            Arg::new("title")
-                .long("title")
+            Arg::new("subject")
+                .long("subject")
                 .short('t')
                 .takes_value(true)
-                .help("New title of the TODO."),
+                .help("New subject of the TODO."),
         )
         .arg(
             Arg::new("description")

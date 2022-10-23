@@ -17,7 +17,7 @@ const ID_COL_WIDTH: usize = 3;
 const PRIO_COL_WIDTH: usize = 10;
 const STATUS_COL_WIDTH: usize = 8;
 const CTX_COL_WIDTH: usize = 12;
-const TITLE_COL_WIDTH: usize = 50;
+const SUBJECT_COL_WIDTH: usize = 50;
 const ACTION_COL_WIDTH: usize = 8;
 const TIMESTAMP_COL_WIDTH: usize = 20;
 const DETAILS_COL_WIDTH: usize = 50;
@@ -76,14 +76,14 @@ impl TableFormatter {
         let prio = Header::from("Priority");
         let status = Header::from("Status");
         let ctx = Header::from("Context");
-        let title = Header::from("Title");
+        let subject = Header::from("Subject");
 
         let header = vec![
             Col::new(ID_COL_WIDTH, &id, Align::Left),
             Col::new(PRIO_COL_WIDTH, &prio, Align::Left),
             Col::new(STATUS_COL_WIDTH, &status, Align::Left),
             Col::new(CTX_COL_WIDTH, &ctx, Align::Left),
-            Col::new(TITLE_COL_WIDTH, &title, Align::Left),
+            Col::new(SUBJECT_COL_WIDTH, &subject, Align::Left),
         ];
 
         format_row(&header)
@@ -105,17 +105,17 @@ impl TableFormatter {
         format_row(&header)
     }
 
-    // ID | Prio | Status | Context | Title
+    // ID | Prio | Status | Context | Subject
     fn map_todo(todo: &Todo) -> Vec<Col> {
         let id = Col::new(ID_COL_WIDTH, &format!(" {}", todo.id), Align::Left);
         let prio = Col::new(PRIO_COL_WIDTH, &todo.prio, Align::Left);
         let status = Col::new(STATUS_COL_WIDTH, &todo.status, Align::Left);
-        let title = Col::new(TITLE_COL_WIDTH, &todo.title, Align::Left);
+        let subject = Col::new(SUBJECT_COL_WIDTH, &todo.subject, Align::Left);
         let context = match &todo.context {
-            Some(cx) => Col::new(CTX_COL_WIDTH, &truncate(&cx, CTX_COL_WIDTH), Align::Left),
+            Some(cx) => Col::new(CTX_COL_WIDTH, &truncate(cx, CTX_COL_WIDTH), Align::Left),
             None => Col::new(CTX_COL_WIDTH, &"".to_string(), Align::Left),
         };
-        vec![id, prio, status, context, title]
+        vec![id, prio, status, context, subject]
     }
 
     // ID  | Action  | Timestamp | Details

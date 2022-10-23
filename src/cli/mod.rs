@@ -137,9 +137,9 @@ impl Cli {
     }
 
     async fn handle_add(&self, matches: &ArgMatches) -> Result<()> {
-        let title = match matches.value_of("title") {
+        let subject = match matches.value_of("subject") {
             Some(s) => s.to_string(),
-            None => self.prompt.line("title>", false)?,
+            None => self.prompt.line("subject>", false)?,
         };
 
         let prio = match matches.value_of("prio") {
@@ -176,7 +176,7 @@ impl Cli {
 
         let todo = self
             .service
-            .add_todo(Status::New, prio, title, description, tags)
+            .add_todo(Status::New, prio, subject, description, tags)
             .await?;
         println!("{}", self.formatter.todo(&todo));
 
@@ -221,7 +221,7 @@ impl Cli {
 
     async fn handle_update(&self, matches: &ArgMatches) -> Result<()> {
         let id = Self::parse_id(matches.value_of("id").unwrap())?;
-        let title = matches.value_of("title").map(|s| s.to_string());
+        let subject = matches.value_of("subject").map(|s| s.to_string());
         let status = match matches.value_of("status") {
             Some(value) => Some(Status::try_from(value.to_string())?),
             None => None,
@@ -236,7 +236,7 @@ impl Cli {
 
         let todo = self
             .service
-            .update_todo(&id, title, status, prio, description, context)
+            .update_todo(&id, subject, status, prio, description, context)
             .await?;
         println!("{}", self.formatter.todo(&todo));
         Ok(())

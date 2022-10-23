@@ -33,8 +33,8 @@ fn build_events() -> Vec<Event> {
     let mut update_status = todo_before.clone();
     update_status.status = Status::Done;
 
-    let mut update_title = todo_before.clone();
-    update_title.title = "New title".to_string();
+    let mut update_subject = todo_before.clone();
+    update_subject.subject = "New subject".to_string();
 
     vec![
         Event::new(
@@ -63,7 +63,7 @@ fn build_events() -> Vec<Event> {
             Action::Add,
             Kind::UpdateTodo {
                 before: todo_before.clone(),
-                after: update_title,
+                after: update_subject,
             },
             4_000_000,
         ),

@@ -11,14 +11,14 @@ async fn add_todo() -> Result<()> {
         .add_todo(
             Status::New,
             Prio::Normal,
-            "Title".to_string(),
+            "Subject".to_string(),
             "description".to_string(),
             Tags::default(),
         )
         .await?;
     let after = fixture.event_count().await?;
     assert!(after > before);
-    assert_eq!(todo.title, "Title");
+    assert_eq!(todo.subject, "Subject");
     assert_eq!(todo.status, Status::New);
     Ok(())
 }

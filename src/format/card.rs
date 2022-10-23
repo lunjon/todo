@@ -40,8 +40,8 @@ impl Card {
     pub fn format(&self, todo: &Todo) -> String {
         let mut lines: Vec<String> = Vec::new();
 
-        let title = self.heading.style(&todo.title);
-        lines.push(title);
+        let subject = self.heading.style(&todo.subject);
+        lines.push(subject);
         lines.push("".to_string());
 
         let (status, prio) = if self.color {

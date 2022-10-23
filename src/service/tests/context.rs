@@ -66,7 +66,7 @@ async fn add_todo_with_context_set() -> Result<()> {
         .add_todo(
             Status::New,
             Prio::Normal,
-            "Title".to_string(),
+            "Subject".to_string(),
             "Description".to_string(),
             Tags::default(),
         )
