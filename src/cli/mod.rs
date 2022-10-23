@@ -1,7 +1,8 @@
 use crate::err;
 use crate::error::Result;
 use crate::format::{Card, Formatter, TableFormatter};
-use crate::model::{Prio, Status, Tags, ID};
+use crate::model::{Link, Prio, Status, CSV, ID};
+use crate::service::changeset::Changeset;
 use crate::service::{ContextFilter, Filter, Service, StatusFilter};
 use crate::style::{Color, Styler};
 use clap::ArgMatches;
@@ -54,7 +55,6 @@ impl Cli {
             Some(("start", sub_matches)) => self.handle_start(sub_matches).await?,
             Some(("update", sub_matches)) => self.handle_update(sub_matches).await?,
             Some(("context", sub_matches)) => self.handle_context(sub_matches).await?,
-            Some(("history", sub_matches)) => self.handle_history(sub_matches).await?,
             _ => unreachable!(),
         }
 
@@ -165,18 +165,17 @@ impl Cli {
 
         let description = self.get_description(matches)?;
 
-        let tags = match matches.values_of("tags") {
-            Some(s) => s.map(|s| s.to_string()).collect::<Vec<String>>().join(" "),
-            None => self.prompt.line("tags?", true)?,
-        };
-        let tags = match Tags::try_from(tags) {
-            Ok(tags) => tags,
-            Err(err) => return err!(err),
+        let tags: Vec<String> = match matches.values_of("tags") {
+            Some(s) => s.map(String::from).collect(),
+            None => match self.prompt.line("tags?", true)?.trim() {
+                "" => vec![],
+                s => s.split_whitespace().map(String::from).collect(),
+            },
         };
 
         let todo = self
             .service
-            .add_todo(Status::New, prio, subject, description, tags)
+            .add_todo(Status::New, prio, subject, description, CSV::new(tags))
             .await?;
         println!("{}", self.formatter.todo(&todo));
 
@@ -188,10 +187,8 @@ impl Cli {
         let mut updated = Vec::new();
 
         for id in ids {
-            let todo = self
-                .service
-                .update_todo(&id, None, Some(Status::Done), None, None, None)
-                .await?;
+            let changeset = Changeset::default().with_status(Status::Done);
+            let todo = self.service.update_todo(&id, changeset).await?;
             updated.push(todo);
         }
 
@@ -206,10 +203,8 @@ impl Cli {
         let mut updated = Vec::new();
 
         for id in ids {
-            let todo = self
-                .service
-                .update_todo(&id, None, Some(Status::Started), None, None, None)
-                .await?;
+            let changeset = Changeset::default().with_status(Status::Started);
+            let todo = self.service.update_todo(&id, changeset).await?;
             updated.push(todo);
         }
 
@@ -221,23 +216,43 @@ impl Cli {
 
     async fn handle_update(&self, matches: &ArgMatches) -> Result<()> {
         let id = Self::parse_id(matches.value_of("id").unwrap())?;
-        let subject = matches.value_of("subject").map(|s| s.to_string());
-        let status = match matches.value_of("status") {
-            Some(value) => Some(Status::try_from(value.to_string())?),
-            None => None,
+
+        let changeset = Changeset::default();
+        let changeset = match matches.value_of("subject") {
+            Some(s) => changeset.with_subject(s.to_string()),
+            None => changeset,
         };
 
-        let prio = match matches.value_of("prio") {
-            Some(s) => Some(Prio::try_from(s.to_string())?),
-            None => None,
+        let changeset = match matches.value_of("status") {
+            Some(value) => changeset.with_status(Status::try_from(value.to_string())?),
+            None => changeset,
         };
-        let description = matches.value_of("description").map(|s| s.to_string());
-        let context = matches.value_of("context").map(|s| s.to_string());
 
-        let todo = self
-            .service
-            .update_todo(&id, subject, status, prio, description, context)
-            .await?;
+        let changeset = match matches.value_of("prio") {
+            Some(s) => changeset.with_prio(Prio::try_from(s.to_string())?),
+            None => changeset,
+        };
+
+        let changeset = match matches.value_of("description") {
+            Some(s) => changeset.with_description(s.to_string()),
+            None => changeset,
+        };
+
+        let changeset = match matches.value_of("context") {
+            Some(s) => changeset.with_context(s.to_string()),
+            None => changeset,
+        };
+
+        let todo = self.service.update_todo(&id, changeset).await?;
+
+        // Linking requires a lot of rules and validation
+        if let Some(links) = matches.values_of("link") {
+            for link in links {
+                let l = Link::try_from(link)?;
+                self.service.link(todo.id, l).await?;
+            }
+        }
+
         println!("{}", self.formatter.todo(&todo));
         Ok(())
     }
@@ -311,16 +326,6 @@ impl Cli {
                 println!("Removed context {}", cx);
             }
             _ => unreachable!(),
-        }
-        Ok(())
-    }
-
-    async fn handle_history(&self, _matches: &ArgMatches) -> Result<()> {
-        let events = self.service.list_events().await?;
-        if events.is_empty() {
-            println!("No history of events.");
-        } else {
-            println!("{}", self.formatter.events(&events));
         }
         Ok(())
     }

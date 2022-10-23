@@ -7,15 +7,9 @@ CREATE TABLE todos (
     description TEXT NOT NULL,
     tags TEXT,
     context TEXT,
+    links TEXT, -- Array of IDs stored as comma separated integers
     FOREIGN KEY (context) REFERENCES contexts(name)
     ON DELETE CASCADE
-);
-
-CREATE TABLE events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    action TEXT NOT NULL,
-    json TEXT NOT NULL,
-    ts INTEGER NOT NULL
 );
 
 -- Only one row to track current context.

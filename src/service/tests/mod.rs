@@ -16,6 +16,7 @@ struct Fixture {
     service: Service,
     todo_new: Todo,
     todo_done: Todo,
+    todo_started: Todo,
     test_context_name: String,
 }
 
@@ -33,20 +34,27 @@ impl Fixture {
         let test_context_name = String::from("test");
 
         let service = Service::new(Repository::new(pool));
-        let (todo_new, todo_done, _) = tokio::join!(
+        let (todo_new, todo_done, todo_started, _) = tokio::join!(
             service.add_todo(
                 Status::New,
                 Prio::Normal,
                 "New subject".to_string(),
                 "Description.".to_string(),
-                Tags::new(vec!["new".to_string()]),
+                CSV::new(vec!["new".to_string()]),
             ),
             service.add_todo(
                 Status::Done,
                 Prio::Normal,
                 "Done subject".to_string(),
                 "Description.".to_string(),
-                Tags::new(vec!["done".to_string()]),
+                CSV::new(vec!["done".to_string()]),
+            ),
+            service.add_todo(
+                Status::Started,
+                Prio::Normal,
+                "Started something".to_string(),
+                "Description".to_string(),
+                CSV::new(vec!["done".to_string()]),
             ),
             service.add_context(&test_context_name),
         );
@@ -56,6 +64,7 @@ impl Fixture {
             test_context_name,
             todo_new: todo_new?,
             todo_done: todo_done?,
+            todo_started: todo_started?,
         })
     }
 
@@ -74,20 +83,13 @@ impl Fixture {
                 Prio::Normal,
                 "Subject".to_string(),
                 "Description".to_string(),
-                Tags::default(),
+                CSV::default(),
             )
             .await?;
         Ok(todo)
     }
 
     async fn todo_count(&self) -> Result<usize> {
-        for t in self.service.list_todos(None).await? {
-            log::info!("TEST: {} {:?}", t.id, t.context);
-        }
         Ok(self.service.list_todos(None).await?.len())
-    }
-
-    async fn event_count(&self) -> Result<usize> {
-        Ok(self.service.list_events().await?.len())
     }
 }

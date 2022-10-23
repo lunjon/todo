@@ -10,7 +10,6 @@ Manage your TODOs in your shell environment with ease.
   - Priority: how urgent is this TODO?
   - Status: current status
   - Context: group TODOs by context such as work, school, etc.
-- History of events related to TODOs, such as adding, updating and more
 
 ### Show case
 <details><summary>Adding</summary>

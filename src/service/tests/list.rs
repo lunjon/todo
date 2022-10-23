@@ -33,7 +33,7 @@ async fn list_todos_with_context_set() -> Result<()> {
             Prio::Normal,
             "Subject".to_string(),
             "Description".to_string(),
-            Tags::default(),
+            CSV::default(),
         )
         .await?;
 

@@ -1,11 +1,14 @@
 use crate::err;
 use crate::error::Result;
-use crate::model::{Action, Event, Kind, Prio, Status, Tags, Todo, ID};
+use crate::model::{Link, Prio, Status, Todo, CSV, ID};
 use crate::repository::Repository;
 use chrono::Local;
 
+pub mod changeset;
 pub mod filter;
 pub use filter::*;
+
+pub use self::changeset::Changeset;
 
 pub struct Service {
     repo: Repository,
@@ -46,7 +49,7 @@ impl Service {
         prio: Prio,
         subject: String,
         description: String,
-        tags: Tags,
+        tags: CSV<String>,
     ) -> Result<Todo> {
         let context = self.get_context().await?;
 
@@ -60,120 +63,27 @@ impl Service {
             description,
             tags,
             context,
+            CSV::empty(),
         );
         let todo = self.repo.add_todo(tmp).await?;
 
-        self.add_todo_event(todo.clone()).await?;
         log::info!("Added todo: {:?}", todo);
         Ok(todo)
     }
 
     pub async fn remove_todo(&self, id: &ID) -> Result<()> {
-        let todo = self.repo.remove_todo(id).await?;
-        self.remove_todo_event(todo).await?;
+        let _todo = self.repo.remove_todo(id).await?;
         log::info!("Removed todo with ID {}", id);
         Ok(())
     }
 
-    pub async fn update_todo(
-        &self,
-        id: &ID,
-        subject: Option<String>,
-        status: Option<Status>,
-        prio: Option<Prio>,
-        description: Option<String>,
-        context: Option<String>,
-    ) -> Result<Todo> {
+    pub async fn update_todo(&self, id: &ID, changeset: Changeset) -> Result<Todo> {
         let mut after = self.repo.get_todo(id).await?;
-        let before = after.clone();
-
-        if let Some(s) = subject {
-            after.subject = s;
-            log::info!("Service.update_todo: updating subject");
-        }
-        if let Some(s) = status {
-            after.status = s;
-            log::info!("Service.update_todo: updating status");
-        }
-        if let Some(s) = prio {
-            after.prio = s;
-            log::info!("Service.update_todo: updating prio");
-        }
-        if let Some(s) = description {
-            after.description = s;
-            log::info!("Service.update_todo: updating description");
-        }
-        if let Some(s) = context {
-            after.context = Some(s);
-            log::info!("Service.update_todo: updating context");
-        }
+        changeset.apply(&mut after);
 
         self.repo.replace_todo(&after).await?;
-        self.update_todo_event(before, after.clone()).await?;
         log::info!("Updated todo with ID {}", id);
         Ok(after)
-    }
-}
-
-// Impl block for events.
-impl Service {
-    fn create_event(action: Action, kind: Kind) -> Event {
-        Event::new(ID::new(0), action, kind, Local::now().timestamp())
-    }
-
-    pub async fn list_events(&self) -> Result<Vec<Event>> {
-        self.repo.get_all_events().await
-    }
-
-    async fn add_todo_event(&self, todo: Todo) -> Result<()> {
-        let event = Self::create_event(Action::Add, Kind::AddTodo(todo));
-        self.repo.add_event(event).await?;
-        log::info!("Registered event for: add todo");
-        Ok(())
-    }
-
-    async fn update_todo_event(&self, before: Todo, after: Todo) -> Result<()> {
-        let event = Self::create_event(Action::Update, Kind::UpdateTodo { before, after });
-        self.repo.add_event(event).await?;
-        log::info!("Registered event for: update todo");
-        Ok(())
-    }
-
-    async fn remove_todo_event(&self, todo: Todo) -> Result<()> {
-        let event = Self::create_event(Action::Remove, Kind::RemoveTodo(todo));
-        self.repo.add_event(event).await?;
-        log::info!("Registered event for: remove todo");
-        Ok(())
-    }
-
-    async fn add_context_event(&self, context: &str) -> Result<()> {
-        let event = Self::create_event(Action::Add, Kind::AddContext(context.to_string()));
-        self.repo.add_event(event).await?;
-        log::info!("Registered event for: add context");
-        Ok(())
-    }
-
-    async fn set_context_event(&self, before: &str, after: &str) -> Result<()> {
-        let event = Self::create_event(
-            Action::Update,
-            Kind::SetContext {
-                before: before.to_string(),
-                after: after.to_string(),
-            },
-        );
-        self.repo.add_event(event).await?;
-        log::info!("Registered event for: set context");
-        Ok(())
-    }
-
-    async fn remove_context_event(&self, context: &str, todos: Vec<Todo>) -> Result<()> {
-        let event = Self::create_event(
-            Action::Remove,
-            Kind::RemoveContext(context.to_string(), todos),
-        );
-        self.repo.add_event(event).await?;
-        log::info!("Registered event for: remove context");
-        Ok(())
     }
 }
 
@@ -189,7 +99,6 @@ impl Service {
         }
 
         self.repo.add_context(&context).await?;
-        self.add_context_event(&context).await?;
         log::info!("Added new context: {context}");
         Ok(())
     }
@@ -213,7 +122,6 @@ impl Service {
         }
 
         self.repo.set_context(&context).await?;
-        self.set_context_event(&current, &context).await?;
         log::info!("Changed context to: {context}");
         Ok(())
     }
@@ -250,13 +158,12 @@ impl Service {
             context
         );
 
-        let removed = if cascade {
+        if cascade {
             log::info!(
                 "Removing {} TODOs due to cascading remove of context {}",
                 todos.len(),
                 context
             );
-            todos
         } else {
             log::info!(
                 "Replacing {} TODOs that was linked to context being removed",
@@ -266,12 +173,10 @@ impl Service {
                 todo.context = None;
                 self.repo.replace_todo(&todo).await?;
             }
-            Vec::new()
         };
 
         // Remove context.
         self.repo.remove_context(context).await?;
-        self.remove_context_event(context, removed).await?;
         log::info!("Removed context: {context}");
         Ok(())
     }
@@ -287,6 +192,66 @@ impl Service {
         } else {
             Ok(s.to_string())
         }
+    }
+}
+
+// Links.
+impl Service {
+    pub async fn link(&self, id: ID, link: Link) -> Result<()> {
+        if link.id() == id {
+            return err!("cannot link to self");
+        }
+
+        let mut todo = self.get_todo(&id).await?;
+        if todo.links.has_any(&[link]) {
+            log::info!("Todo with ID {} already has link {}", id, link);
+            return Ok(());
+        }
+
+        // Check that this doesn't have the other link with same ID.
+        // That is, do not allow circular referencing.
+        if let Some(other_link) = link.bi_directional(id) {
+            if todo.links.has_any(&[other_link]) {
+                return err!("cannot add circular references");
+            }
+        }
+
+        // Check that the ID referenced in the link doesn't already have it,
+        // and that it doesn't create a circular reference.
+        let mut other = self.get_todo(&link.id()).await?;
+        let circular = link.with_id(id);
+        if other.links.has_any(&[circular]) {
+            log::info!("Tried to add link that already exist on other part");
+            return err!("link already exist on other part");
+        }
+
+        todo.links.push(link);
+        let changeset = Changeset::default().with_links(todo.links);
+        let changeset = match link {
+            Link::BlockedBy(_) => changeset.with_status(Status::Blocked),
+            _ => changeset,
+        };
+        self.update_todo(&id, changeset).await?;
+
+        if let Some(other_link) = link.bi_directional(id) {
+            log::info!("Adding counter link: {}", other_link);
+            other.links.push(other_link);
+
+            let changeset = Changeset::default().with_links(other.links);
+            let changeset = match other_link {
+                Link::BlockedBy(_) => changeset.with_status(Status::Blocked),
+                _ => changeset,
+            };
+
+            self.update_todo(&other.id, changeset).await?;
+        }
+
+        log::info!("Added link {} to {}", link, id);
+        Ok(())
+    }
+
+    pub async fn unlink(&self, _id: ID, _link: Link) -> Result<()> {
+        todo!()
     }
 }
 

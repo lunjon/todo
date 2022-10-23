@@ -5,7 +5,6 @@ use crate::model::{Prio, Status};
 #[tokio::test]
 async fn add_todo() -> Result<()> {
     let fixture = Fixture::setup().await?;
-    let before = fixture.event_count().await?;
     let todo = fixture
         .service
         .add_todo(
@@ -13,12 +12,16 @@ async fn add_todo() -> Result<()> {
             Prio::Normal,
             "Subject".to_string(),
             "description".to_string(),
-            Tags::default(),
+            CSV::default(),
         )
         .await?;
-    let after = fixture.event_count().await?;
-    assert!(after > before);
     assert_eq!(todo.subject, "Subject");
     assert_eq!(todo.status, Status::New);
+    assert!(todo.links.is_empty());
     Ok(())
 }
+
+// #[tokio::test]
+// async fn linking_unknown_gives_error() {
+//     todo!()
+// }

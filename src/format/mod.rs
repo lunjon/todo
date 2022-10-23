@@ -1,4 +1,3 @@
-use crate::model::event::Event;
 use crate::model::Todo;
 
 pub mod card;
@@ -13,6 +12,4 @@ pub trait Formatter {
     fn todos(&self, todos: &[Todo]) -> String;
     /// Format a single Todo.
     fn todo(&self, todo: &Todo) -> String;
-    /// Format a slice of events.
-    fn events(&self, events: &[Event]) -> String;
 }

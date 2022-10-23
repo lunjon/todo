@@ -1,11 +1,10 @@
-use super::{Prio, Status, Tags, ID};
+use super::{Link, Prio, Status, CSV, ID};
 use chrono::{DateTime, Local};
-use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
 /// Todo is the central model for this projet and represents
 /// a unit of work that has a status (current state), priority, etc.
-#[derive(Clone, Debug, Deserialize, Eq, Serialize)]
+#[derive(Clone, Debug)]
 pub struct Todo {
     /// ID of this todo.
     pub id: ID,
@@ -19,11 +18,13 @@ pub struct Todo {
     pub subject: String,
     /// Description can contain more details about this todo.
     pub description: String,
-    /// Tags can include certain attributes for a todo.
-    pub tags: Tags,
     /// The context, if any, that this todo belongs to.
     /// Typical values are `work` and `home`, or perhaps a project.
     pub context: Option<String>,
+    /// Linked todos.
+    pub links: CSV<Link>,
+    /// Tags can include certain attributes for a todo.
+    pub tags: CSV<String>,
 }
 
 impl Todo {
@@ -36,8 +37,9 @@ impl Todo {
         prio: Prio,
         subject: String,
         description: String,
-        tags: Tags,
+        tags: CSV<String>,
         context: Option<String>,
+        links: CSV<Link>,
     ) -> Self {
         Self {
             id,
@@ -48,6 +50,7 @@ impl Todo {
             description,
             tags,
             context,
+            links,
         }
     }
 
@@ -62,6 +65,8 @@ impl PartialEq for Todo {
         self.id == other.id
     }
 }
+
+impl Eq for Todo {}
 
 impl PartialOrd for Todo {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

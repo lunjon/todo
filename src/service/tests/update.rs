@@ -7,7 +7,7 @@ async fn update_unknown_id() -> Result<()> {
     let fixture = Fixture::setup().await?;
     let res = fixture
         .service
-        .update_todo(&ID::new(999), None, Some(Status::Done), None, None, None)
+        .update_todo(&ID::new(999), Changeset::default())
         .await;
     let error = res.err().unwrap().to_string();
     assert!(error.contains("not found"));
@@ -17,21 +17,13 @@ async fn update_unknown_id() -> Result<()> {
 #[tokio::test]
 async fn update_status() -> Result<()> {
     let fixture = Fixture::setup().await?;
-    let before = fixture.event_count().await?;
     let todo = fixture
         .service
         .update_todo(
             &fixture.todo_new.id,
-            None,
-            Some(Status::Done),
-            None,
-            None,
-            None,
+            Changeset::default().with_status(Status::Done),
         )
         .await?;
-    let after = fixture.event_count().await?;
-    assert!(after > before);
-
     assert_eq!(todo.subject, fixture.todo_new.subject);
     assert_eq!(todo.status, Status::Done);
     assert_eq!(todo.description, fixture.todo_new.description);
@@ -45,11 +37,9 @@ async fn update_subject() -> Result<()> {
         .service
         .update_todo(
             &fixture.todo_new.id,
-            Some("Updated subject".to_string()),
-            Some(Status::Done),
-            None,
-            None,
-            None,
+            Changeset::default()
+                .with_subject("Updated subject".to_string())
+                .with_status(Status::Done),
         )
         .await?;
     assert_eq!(todo.subject, "Updated subject");
@@ -64,13 +54,116 @@ async fn update_context() -> Result<()> {
         .service
         .update_todo(
             &fixture.todo_new.id,
-            None,
-            None,
-            None,
-            None,
-            Some("test".to_string()),
+            Changeset::default().with_context("test".to_string()),
         )
         .await?;
     assert_eq!(todo.context, Some("test".to_string()));
     Ok(())
 }
+
+#[tokio::test]
+async fn add_link() -> Result<()> {
+    let fixture = Fixture::setup().await?;
+
+    // Act
+    let link = Link::Blocks(fixture.todo_new.id);
+    fixture.service.link(fixture.todo_started.id, link).await?;
+
+    // Assert
+    let bi_dir = link.bi_directional(fixture.todo_started.id).unwrap();
+    let todo_new = fixture.service.get_todo(&fixture.todo_new.id).await?;
+    dbg!(todo_new.links.to_string());
+    assert!(todo_new.links.has_any(&[bi_dir]));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn linking_unknown_gives_error() -> Result<()> {
+    let fixture = Fixture::setup().await?;
+    let link = Link::Blocks(ID::new(99));
+    let res = fixture.service.link(fixture.todo_new.id, link).await;
+    assert!(res.is_err());
+    Ok(())
+}
+
+#[tokio::test]
+async fn linking_self_gives_error() -> Result<()> {
+    let fixture = Fixture::setup().await?;
+    let link = Link::Blocks(fixture.todo_new.id);
+    let res = fixture.service.link(fixture.todo_new.id, link).await;
+    assert!(res.is_err());
+    Ok(())
+}
+
+#[tokio::test]
+async fn linking_same_on_other() -> Result<()> {
+    // Arrange
+    let fixture = Fixture::setup().await?;
+    let link = Link::Blocks(fixture.todo_new.id);
+    fixture.service.link(fixture.todo_started.id, link).await?;
+
+    // Act
+    let link = Link::Blocks(fixture.todo_started.id);
+    let res = fixture.service.link(fixture.todo_new.id, link).await;
+
+    // Assert
+    assert!(res.is_err());
+    Ok(())
+}
+
+#[tokio::test]
+async fn add_existing_does_nothing() -> Result<()> {
+    let fixture = Fixture::setup().await?;
+
+    // Act
+    let link = Link::Blocks(fixture.todo_new.id);
+    fixture.service.link(fixture.todo_started.id, link).await?;
+    fixture.service.link(fixture.todo_started.id, link).await?;
+    Ok(())
+}
+
+#[tokio::test]
+async fn add_blocked_by_set_status() -> Result<()> {
+    // Arrange
+    let fixture = Fixture::setup().await?;
+
+    // Act: new blocked by started
+    let link = Link::BlockedBy(fixture.todo_started.id);
+    fixture.service.link(fixture.todo_new.id, link).await?;
+
+    // Assert
+    let todo_new = fixture.service.get_todo(&fixture.todo_new.id).await?;
+    assert!(matches!(todo_new.status, Status::Blocked));
+    Ok(())
+}
+
+#[tokio::test]
+async fn add_blocks_sets_status() -> Result<()> {
+    // Arrange
+    let fixture = Fixture::setup().await?;
+
+    // Act: started blocks new
+    let link = Link::Blocks(fixture.todo_new.id);
+    fixture.service.link(fixture.todo_started.id, link).await?;
+
+    // Assert
+    let todo_new = fixture.service.get_todo(&fixture.todo_new.id).await?;
+    assert!(matches!(todo_new.status, Status::Blocked));
+    Ok(())
+}
+
+// #[tokio::test]
+// async fn removing_blocks_removes_blocked_by() {
+//     todo!()
+// }
+
+// #[tokio::test]
+// async fn resolved_by_adds_resolves() {
+//     todo!()
+// }
+
+// #[tokio::test]
+// async fn resolves_done_sets_resolved_by_to_done() {
+//     todo!()
+// }

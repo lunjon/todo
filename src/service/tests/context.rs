@@ -68,7 +68,7 @@ async fn add_todo_with_context_set() -> Result<()> {
             Prio::Normal,
             "Subject".to_string(),
             "Description".to_string(),
-            Tags::default(),
+            CSV::default(),
         )
         .await?;
     assert_eq!(todo.context, Some(fixture.test_context_name));

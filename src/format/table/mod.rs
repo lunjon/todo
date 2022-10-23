@@ -1,11 +1,7 @@
-use core::fmt;
-
 use super::Formatter;
-use crate::{
-    model::{Event, Todo},
-    style::{StyleDisplay, Styler},
-};
-use chrono::NaiveDateTime;
+use crate::model::Todo;
+use crate::style::{StyleDisplay, Styler};
+use core::fmt;
 
 mod col;
 #[cfg(test)]
@@ -18,9 +14,6 @@ const PRIO_COL_WIDTH: usize = 10;
 const STATUS_COL_WIDTH: usize = 8;
 const CTX_COL_WIDTH: usize = 12;
 const SUBJECT_COL_WIDTH: usize = 50;
-const ACTION_COL_WIDTH: usize = 8;
-const TIMESTAMP_COL_WIDTH: usize = 20;
-const DETAILS_COL_WIDTH: usize = 50;
 
 /// Specifies how to align the content.
 pub enum Align {
@@ -89,22 +82,6 @@ impl TableFormatter {
         format_row(&header)
     }
 
-    fn event_table_header(&self) -> String {
-        let id = Header::from(" ID");
-        let action = Header::from("Action");
-        let timestamp = Header::from("Timestamp");
-        let details = Header::from("Details");
-
-        let header = vec![
-            Col::new(ID_COL_WIDTH, &id, Align::Left),
-            Col::new(ACTION_COL_WIDTH, &action, Align::Center),
-            Col::new(TIMESTAMP_COL_WIDTH, &timestamp, Align::Left),
-            Col::new(DETAILS_COL_WIDTH, &details, Align::Left),
-        ];
-
-        format_row(&header)
-    }
-
     // ID | Prio | Status | Context | Subject
     fn map_todo(todo: &Todo) -> Vec<Col> {
         let id = Col::new(ID_COL_WIDTH, &format!(" {}", todo.id), Align::Left);
@@ -116,16 +93,6 @@ impl TableFormatter {
             None => Col::new(CTX_COL_WIDTH, &"".to_string(), Align::Left),
         };
         vec![id, prio, status, context, subject]
-    }
-
-    // ID  | Action  | Timestamp | Details
-    fn map_event(event: &Event) -> Vec<Col> {
-        let id = Col::new(ID_COL_WIDTH, &format!(" {}", event.id), Align::Left);
-        let action = Col::new(ACTION_COL_WIDTH, &event.action, Align::Center);
-        let datetime = NaiveDateTime::from_timestamp(event.timestamp, 0);
-        let datetime = Col::new(TIMESTAMP_COL_WIDTH, &datetime.to_string(), Align::Left);
-        let details = Col::new(DETAILS_COL_WIDTH, &event.kind, Align::Left);
-        vec![id, action, datetime, details]
     }
 }
 
@@ -143,17 +110,6 @@ impl Formatter for TableFormatter {
 
     fn todo(&self, todo: &Todo) -> String {
         self.todos(&[todo.clone()])
-    }
-
-    fn events(&self, events: &[Event]) -> String {
-        let table = events
-            .iter()
-            .map(Self::map_event)
-            .map(|cols| format_row(&cols))
-            .collect::<Vec<String>>()
-            .join("\n");
-
-        format!("{}\n{}", self.event_table_header(), table)
     }
 }
 
