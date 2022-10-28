@@ -16,6 +16,10 @@ impl Changeset {
         !self.updated
     }
 
+    pub fn sets_done(&self) -> bool {
+        matches!(self.status, Some(Status::Done))
+    }
+
     pub fn apply(self, todo: &mut Todo) {
         if let Some(s) = self.subject {
             todo.subject = s;

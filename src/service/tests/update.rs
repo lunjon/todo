@@ -169,23 +169,25 @@ async fn unlink_block_removes_blockedby() -> Result<()> {
     Ok(())
 }
 
-// #[tokio::test]
-// async fn setting_done_removes_block() -> Result<()> {
-//     // Arrange
-//     let fx = Fixture::setup().await?;
+#[tokio::test]
+async fn setting_blocking_done_removes_blockedby() -> Result<()> {
+    // Arrange
+    let fixture = Fixture::setup().await?;
 
-//     // Act: set started to done
-//     let changeset = Changeset::default().with_status(Status::Done);
-//     fx.svc.update_todo(&fx.todo_started.id, changeset).await?;
+    // Act
+    let cs = Changeset::default().with_status(Status::Done);
+    fixture
+        .svc
+        .update_todo(&fixture.todo_started.id, cs)
+        .await?;
 
-//     // Assert
-//     let blocked = fx.svc.get_todo(&fx.todo_blocked.id).await?;
-//     assert!(matches!(blocked.status, Status::New));
-//     Ok(())
-// }
+    // Assert
+    let todo = fixture.svc.get_todo(&fixture.todo_blocked.id).await?;
+    assert!(matches!(todo.status, Status::New));
+    Ok(())
+}
 
 /*
-removing_blocks_removes_blocked_by
 resolved_by_adds_resolves
 resolves_done_sets_resolved_by_to_done
 */

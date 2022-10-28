@@ -79,25 +79,36 @@ impl Service {
     }
 
     pub async fn update_todo(&self, id: &ID, changeset: Changeset) -> Result<Todo> {
-        let mut todo = self.repo.get_todo(id).await?;
+        let todo = self.repo.get_todo(id).await?;
         if changeset.is_empty() {
             return Ok(todo);
         }
-        changeset.apply(&mut todo);
 
-        // Handle transitions:
-        //   status => done
-        //     remove blocks
-        //     set resolves to done
-        if todo.is_done() {
+        // Handle transitions
+        let mut load = false;
+        if changeset.sets_done() {
+            log::info!("Todo {} was set to done, resolving links", id);
+            load = true;
+
+            // FIXME! it would be nice to be able to this in one step
             for link in todo.links.values() {
                 match link {
-                    Link::Blocks(_) => todo!(),
-                    Link::BlockedBy(_) => todo!(),
-                    Link::RelatesTo(_) => todo!(),
+                    Link::Blocks(blocked) => {
+                        self.unlink_block(*id, *blocked).await?;
+                    }
+                    Link::BlockedBy(blocker) => {
+                        self.unlink_block(*blocker, *id).await?;
+                    }
+                    _ => {}
                 }
             }
         }
+
+        // FIXME! This seems like an unnecessary step
+        // If any link was resolved we must reload the todo after.
+        let mut todo = if load { self.get_todo(id).await? } else { todo };
+
+        changeset.apply(&mut todo);
 
         self.repo.replace_todo(&todo).await?;
         log::info!("Updated todo with ID {}", id);
