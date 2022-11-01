@@ -2,6 +2,7 @@ use crate::err;
 use crate::error::Error;
 use crate::style::{Color, StyleDisplay, Styler};
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::fmt;
 
 /// Status represents the state of a Todo.
@@ -61,6 +62,41 @@ impl TryFrom<String> for Status {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::try_from(value.as_str())
+    }
+}
+
+impl PartialOrd for Status {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// started > new > blocked > done
+///
+/// Note that Ordering::Less means it ends up before other
+/// values when sorting.
+impl Ord for Status {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self {
+            Started => match other {
+                Started => Ordering::Equal,
+                _ => Ordering::Less,
+            },
+            New => match other {
+                Started => Ordering::Greater,
+                New => Ordering::Equal,
+                _ => Ordering::Less,
+            },
+            Blocked => match other {
+                Blocked => Ordering::Equal,
+                Done => Ordering::Less,
+                _ => Ordering::Greater,
+            },
+            Done => match other {
+                Done => Ordering::Equal,
+                _ => Ordering::Less,
+            },
+        }
     }
 }
 

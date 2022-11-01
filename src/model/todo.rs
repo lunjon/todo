@@ -5,6 +5,11 @@ use std::cmp::Ordering;
 /// Todo is the central model for this projet and represents
 /// a unit of work that has a status (current state), priority, etc.
 #[derive(Clone, Debug)]
+// FIXME! Refactor type into more fields:
+//   - keep basic fields in root: id, created, status
+//   - properties: prio, subject, description, context
+//   - metadata: links, tags
+//   - extras (not implement, find better name): after, recurring
 pub struct Todo {
     /// ID of this todo.
     pub id: ID,
@@ -87,14 +92,25 @@ impl PartialOrd for Todo {
 }
 
 /// Ordering of todos is based on fields in order:
-///     prio > created
+///     prio > status > created
 ///
 /// Note that Ordering::Less means it ends up before other
 /// values when sorting.
 impl Ord for Todo {
     fn cmp(&self, other: &Self) -> Ordering {
+        // Push todos that are done to the end when sorting
+        if self.is_done() {
+            return Ordering::Greater;
+        } else if other.is_done() {
+            return Ordering::Less;
+        }
+
+        // The following comparison is based on status != done
         match self.prio.cmp(&other.prio) {
-            Ordering::Equal => self.created.cmp(&other.created),
+            Ordering::Equal => match self.status.cmp(&other.status) {
+                Ordering::Equal => self.created.cmp(&other.created),
+                ordering => ordering,
+            },
             o => o,
         }
     }
