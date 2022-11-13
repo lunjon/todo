@@ -86,26 +86,29 @@ impl Service {
 
         // Handle transitions
         let mut load = false;
-        if changeset.sets_done() {
-            log::info!("Todo {} was set to done, resolving links", id);
-            load = true;
-
-            // FIXME! it would be nice to be able to this in one step
-            for link in todo.links.values() {
-                match link {
-                    Link::Blocks(blocked) => {
-                        self.unlink_block(*id, *blocked).await?;
+        if let Some(status) = &changeset.status {
+            match status {
+                Status::Started => {
+                    load = true;
+                    for link in todo.links.values() {
+                        if let Link::BlockedBy(blocker) = link {
+                            self.unlink_block(*blocker, *id).await?;
+                        }
                     }
-                    Link::BlockedBy(blocker) => {
-                        self.unlink_block(*blocker, *id).await?;
-                    }
-                    _ => {}
                 }
+                Status::Done => {
+                    load = true;
+                    for link in todo.links.values() {
+                        if let Link::Blocks(blocked) = link {
+                            self.unlink_block(*id, *blocked).await?;
+                        }
+                    }
+                }
+                _ => {}
             }
         }
 
-        // FIXME! This seems like an unnecessary step
-        // If any link was resolved we must reload the todo after.
+        // If any links where changed we must reload the todo after.
         let mut todo = if load { self.get_todo(id).await? } else { todo };
 
         changeset.apply(&mut todo);

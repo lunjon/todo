@@ -2,8 +2,8 @@ use crate::model::{Link, Prio, Status, Todo, CSV};
 
 #[derive(Default)]
 pub struct Changeset {
+    pub status: Option<Status>,
     subject: Option<String>,
-    status: Option<Status>,
     prio: Option<Prio>,
     description: Option<String>,
     context: Option<String>,
@@ -14,10 +14,6 @@ pub struct Changeset {
 impl Changeset {
     pub fn is_empty(&self) -> bool {
         !self.updated
-    }
-
-    pub fn sets_done(&self) -> bool {
-        matches!(self.status, Some(Status::Done))
     }
 
     pub fn apply(self, todo: &mut Todo) {
