@@ -1,15 +1,16 @@
 # ToDo
 
-Manage your TODOs in your shell environment with ease.
+Manage your todos in your shell environment with ease.
 
 ## Features
 
 - Script and user friendly CLI
-- Simple management of TODOs
+- Simple management of todos
 - Support concepts such as
-  - Priority: how urgent is this TODO?
+  - Priority: how urgent is this todo?
   - Status: current status
-  - Context: group TODOs by context such as work, school, etc.
+  - Context: group todos by context such as work, school, etc.
+  - Linking: `a blocks b`, for instance
 
 ### Show case
 <details><summary>Adding</summary>
