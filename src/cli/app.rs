@@ -5,7 +5,7 @@ pub fn build_app() -> Command<'static> {
         .about("CLI tool for managing tasks.")
         .long_about(
             "Use --help option to get detailed help.
-If no sub-command is used it defaults to listing TODOs with the
+If no sub-command is used it defaults to listing todos with the
 default behaviour of the list command.",
         )
         .arg(
@@ -34,10 +34,10 @@ default behaviour of the list command.",
 
 fn show() -> Command<'static> {
     Command::new("show")
-        .about("Get more details about a TODO.")
+        .about("Get more details about a todo.")
         .arg(
             Arg::new("id")
-                .help("The ID of the TODO to get details for.")
+                .help("The ID of the todo to get details for.")
                 .takes_value(true)
                 .required(true),
         )
@@ -46,18 +46,18 @@ fn show() -> Command<'static> {
 fn list() -> Command<'static> {
     Command::new("list")
         .alias("ls")
-        .about("List TODOs. Defaults to only listing TODOs with status != done.")
+        .about("List todos. Defaults to only listing todos with status != done.")
         .long_about(
-            "List TODOs. Defaults to only listing TODOs with status != done
+            "List todos. Defaults to only listing todos with status != done
 and in the current context (if set). To get more details about
-a TODO use the sub-command 'get'.",
+a todo use the sub-command 'get'.",
         )
         .arg(
             Arg::new("all")
                 .long("all")
                 .short('a')
                 .exclusive(true)
-                .help("List all TODOs.")
+                .help("List all todos.")
                 .required(false),
         )
         .arg(
@@ -85,9 +85,9 @@ a TODO use the sub-command 'get'.",
 
 pub fn add() -> Command<'static> {
     Command::new("add")
-        .about("Adds a new TODO.")
+        .about("Adds a new todo.")
         .long_about(
-            "Adds a new TODO. Required parameters not passed via options are
+            "Adds a new todo. Required parameters not passed via options are
 queried interactively like so:
   > required
   ? optional",
@@ -96,7 +96,7 @@ queried interactively like so:
             Arg::new("subject")
                 .long("subject")
                 .short('t')
-                .help("Subject for the TODO.")
+                .help("Subject for the todo.")
                 .takes_value(true),
         )
         .arg(
@@ -111,7 +111,7 @@ queried interactively like so:
                 .long("tags")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("Tags for the TODO. Must be single word strings with a length less than 20."),
+                .help("Tags for the todo. Must be single word strings with a length less than 20."),
         )
         .arg(
             Arg::new("prio")
@@ -124,33 +124,33 @@ queried interactively like so:
 
 pub fn update() -> Command<'static> {
     Command::new("update")
-        .about("Updates a TODO. Only updates fields provided in the options.")
+        .about("Updates a todo. Only updates fields provided in the options.")
         .arg(
             Arg::new("id")
                 .takes_value(true)
                 .required(true)
-                .help("ID of the TODO to update."),
+                .help("ID of the todo to update."),
         )
         .arg(
             Arg::new("subject")
                 .long("subject")
                 .short('t')
                 .takes_value(true)
-                .help("New subject of the TODO."),
+                .help("New subject of the todo."),
         )
         .arg(
             Arg::new("description")
                 .long("description")
                 .short('d')
                 .takes_value(true)
-                .help("New description of the TODO."),
+                .help("New description of the todo."),
         )
         .arg(
             Arg::new("status")
                 .long("status")
                 .short('s')
                 .takes_value(true)
-                .help("New status of the TODO.")
+                .help("New status of the todo.")
                 .possible_values(&["new", "started", "done"]),
         )
         .arg(
@@ -158,7 +158,7 @@ pub fn update() -> Command<'static> {
                 .long("prio")
                 .short('p')
                 .takes_value(true)
-                .help("New priority of the TODO.")
+                .help("New priority of the todo.")
                 .possible_values(&["low", "normal", "high", "critical"]),
         )
         .arg(
@@ -166,7 +166,7 @@ pub fn update() -> Command<'static> {
                 .long("context")
                 .short('c')
                 .takes_value(true)
-                .help("Sets context of the TODO."),
+                .help("Sets context of the todo."),
         )
         .arg(
             Arg::new("link")
@@ -195,18 +195,18 @@ Some links are bi-directional: `a blocks b` implices `b blocked by a`.
 
 fn done() -> Command<'static> {
     Command::new("done")
-        .about("Marks one or more TODOs as done.")
+        .about("Marks one or more todos as done.")
         .long_about(
-            "Marks one or more TODOs as done.
+            "Marks one or more todos as done.
 To update other fields use the 'update' command.",
         )
         .arg(
             Arg::new("ids")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("IDs of the TODOs to set as done.")
+                .help("IDs of the todos to set as done.")
                 .long_help(
-                    "IDs of the TODOs to set as done.
+                    "IDs of the todos to set as done.
 Only valid IDs of type unsigned integers will be considered.",
                 ),
         )
@@ -215,28 +215,28 @@ Only valid IDs of type unsigned integers will be considered.",
 fn start() -> Command<'static> {
     Command::new("start")
         .alias("begin")
-        .about("Set status of one or more TODOs to started.")
+        .about("Set status of one or more todos to started.")
         .long_about(
-            "Marks one or more TODOs as done.
+            "Marks one or more todos as done.
 To update other fields use the 'update' command.",
         )
         .arg(
             Arg::new("ids")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("IDs of the TODOs to remove. Only valid IDs will be considered."),
+                .help("IDs of the todos to remove. Only valid IDs will be considered."),
         )
 }
 
 fn remove() -> Command<'static> {
     Command::new("remove")
         .alias("rm")
-        .about("Removes one or more TODOs.")
+        .about("Removes one or more todos.")
         .arg(
             Arg::new("ids")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("IDs of the TODOs to remove. Only valid IDs will be considered."),
+                .help("IDs of the todos to remove. Only valid IDs will be considered."),
         )
         .arg(
             Arg::new("yes")
@@ -252,7 +252,7 @@ fn context() -> Command<'static> {
         .alias("ctx")
         .about("Shows the current context, if any. See sub-commands for managing contexts.")
         .long_about(
-            "Contexts are used to associate TODOs with a certain context,
+            "Contexts are used to associate todos with a certain context,
 e.g. 'home' or 'work'. Contexts must have a name with a length
 greater than 2 and no more than 10.
 
@@ -286,7 +286,7 @@ via the 'context add' sub-command.",
                     Arg::new("cascade")
                         .long("cascade")
                         .takes_value(false)
-                        .help("Remove all TODOs associated with context."),
+                        .help("Remove all todos associated with context."),
                 )
                 .arg(
                     Arg::new("name")

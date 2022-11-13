@@ -134,7 +134,7 @@ impl Service {
 
 // Context.
 impl Service {
-    // TODO: validate context string. It should be a short, single word string
+    // todo: validate context string. It should be a short, single word string
     // with only characters from [a-z].
     pub async fn add_context(&self, context: &str) -> Result<()> {
         let context = self.validate_context_name(context)?;
@@ -198,20 +198,20 @@ impl Service {
         }
 
         log::info!(
-            "Found {} TODOs linked to context {} being removed",
+            "Found {} todos linked to context {} being removed",
             todos.len(),
             context
         );
 
         if cascade {
             log::info!(
-                "Removing {} TODOs due to cascading remove of context {}",
+                "Removing {} todos due to cascading remove of context {}",
                 todos.len(),
                 context
             );
         } else {
             log::info!(
-                "Replacing {} TODOs that was linked to context being removed",
+                "Replacing {} todos that was linked to context being removed",
                 todos.len()
             );
             for mut todo in todos {

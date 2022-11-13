@@ -80,7 +80,7 @@ impl Kind {
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Kind::AddTodo(todo) => write!(f, "Added TODO with ID {}", todo.id),
+            Kind::AddTodo(todo) => write!(f, "Added todo with ID {}", todo.id),
             Kind::UpdateTodo { before, after } => {
                 let mut changes: Vec<String> = Vec::new();
                 if before.status != after.status {
@@ -119,16 +119,16 @@ impl fmt::Display for Kind {
                 }
 
                 if changes.is_empty() {
-                    write!(f, "Updated TODO: no changes")
+                    write!(f, "Updated todo: no changes")
                 } else {
-                    write!(f, "Updated TODO: {}", changes.join(", "))
+                    write!(f, "Updated todo: {}", changes.join(", "))
                 }
             }
-            Kind::RemoveTodo(todo) => write!(f, "Removed TODO with ID {}", todo.id),
+            Kind::RemoveTodo(todo) => write!(f, "Removed todo with ID {}", todo.id),
             Kind::AddContext(context) => write!(f, "Added new context with name '{}'", context),
             Kind::RemoveContext(context, todos) => write!(
                 f,
-                "Removed context with name '{}' and {} associated TODOs",
+                "Removed context with name '{}' and {} associated todos",
                 context,
                 todos.len()
             ),

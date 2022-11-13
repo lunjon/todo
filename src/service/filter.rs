@@ -22,7 +22,7 @@ pub enum ContextFilter {
     Name(String),
 }
 
-/// Filter is used when listing TODOs, e.g. by status.
+/// Filter is used when listing todos, e.g. by status.
 /// The default filter includes only statuses != done
 /// and that has the current (in any) context.
 pub struct Filter {
