@@ -27,3 +27,17 @@ async fn remove_unknown() -> Result<()> {
     assert!(err);
     Ok(())
 }
+
+#[tokio::test]
+async fn removing_todo_removes_links() -> Result<()> {
+    // Arrange
+    let fixture = Fixture::setup().await?;
+
+    // Act
+    fixture.svc.remove_todo(&fixture.todo_started.id).await?;
+
+    // Assert
+    let todo = fixture.svc.get_todo(&fixture.todo_blocked.id).await?;
+    assert!(matches!(todo.status, Status::New));
+    Ok(())
+}

@@ -73,8 +73,20 @@ impl Service {
     }
 
     pub async fn remove_todo(&self, id: &ID) -> Result<()> {
-        let _todo = self.repo.remove_todo(id).await?;
-        log::info!("Removed todo with ID {}", id);
+        let todo = self.get_todo(id).await?;
+
+        // Remove links to the todo being removed
+        for link in todo.links.values() {
+            let (blocker, blocked) = match link {
+                Link::Blocks(blocked) => (id, blocked),
+                Link::BlockedBy(blocker) => (blocker, id),
+                _ => continue,
+            };
+            self.unlink_block(*blocker, *blocked).await?;
+        }
+
+        let todo = self.repo.remove_todo(id).await?;
+        log::info!("Removed todo with ID {}", todo.id);
         Ok(())
     }
 

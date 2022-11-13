@@ -186,8 +186,3 @@ async fn setting_blocking_done_removes_blockedby() -> Result<()> {
     assert!(matches!(todo.status, Status::New));
     Ok(())
 }
-
-/*
-resolved_by_adds_resolves
-resolves_done_sets_resolved_by_to_done
-*/
