@@ -43,7 +43,8 @@ impl Cli {
 
     pub async fn exec(&self) -> Result<()> {
         let matches = app::build_app().get_matches();
-        self.enable_log(matches.value_of("log"))?;
+        let log_level = matches.get_one::<String>("log");
+        self.enable_log(log_level.map(|s| s.as_str()))?;
 
         match matches.subcommand() {
             None => self.handle_default().await?,
@@ -91,7 +92,7 @@ impl Cli {
     }
 
     async fn handle_get(&self, matches: &ArgMatches) -> Result<()> {
-        let id = Self::parse_id(matches.value_of("id").unwrap())?;
+        let id = Self::parse_id(matches.get_one::<String>("id").unwrap().as_str())?;
         let todo = self.service.get_todo(&id).await?;
         let card = Card::new(true);
         let s = card.format(&todo);
@@ -100,13 +101,13 @@ impl Cli {
     }
 
     async fn handle_list(&self, matches: &ArgMatches) -> Result<()> {
-        let filter = if matches.is_present("all") {
+        let filter = if matches.contains_id("all") {
             None
         } else {
             let filter = Filter::default();
 
-            let filter = match matches.value_of("status") {
-                Some(status) => match status {
+            let filter = match matches.get_one::<String>("status") {
+                Some(status) => match status.as_str() {
                     "any" => filter.status(StatusFilter::Any),
                     status => {
                         let s = Status::try_from(status.to_string())?;
@@ -116,12 +117,12 @@ impl Cli {
                 None => filter,
             };
 
-            let filter = match matches.value_of("context") {
+            let filter = match matches.get_one::<String>("context") {
                 Some(s) => filter.context(ContextFilter::Name(s.to_string())),
                 None => filter,
             };
 
-            let filter = match matches.values_of("tags") {
+            let filter = match matches.get_many::<String>("tags") {
                 Some(tags) => filter.tags(tags.map(String::from).collect()),
                 None => filter,
             };
@@ -137,12 +138,12 @@ impl Cli {
     }
 
     async fn handle_add(&self, matches: &ArgMatches) -> Result<()> {
-        let subject = match matches.value_of("subject") {
+        let subject = match matches.get_one::<String>("subject") {
             Some(s) => s.to_string(),
             None => self.prompt.line("subject>", false)?,
         };
 
-        let prio = match matches.value_of("prio") {
+        let prio = match matches.get_one::<String>("prio") {
             Some(s) => Prio::try_from(s.to_string())?,
             None => match self
                 .prompt
@@ -165,7 +166,7 @@ impl Cli {
 
         let description = self.get_description(matches)?;
 
-        let tags: Vec<String> = match matches.values_of("tags") {
+        let tags: Vec<String> = match matches.get_many::<String>("tags") {
             Some(s) => s.map(String::from).collect(),
             None => match self.prompt.line("tags?", true)?.trim() {
                 "" => vec![],
@@ -215,30 +216,30 @@ impl Cli {
     }
 
     async fn handle_update(&self, matches: &ArgMatches) -> Result<()> {
-        let id = Self::parse_id(matches.value_of("id").unwrap())?;
+        let id = Self::parse_id(matches.get_one::<String>("id").unwrap().as_str())?;
 
         let changeset = Changeset::default();
-        let changeset = match matches.value_of("subject") {
+        let changeset = match matches.get_one::<String>("subject") {
             Some(s) => changeset.with_subject(s.to_string()),
             None => changeset,
         };
 
-        let changeset = match matches.value_of("status") {
+        let changeset = match matches.get_one::<String>("status") {
             Some(value) => changeset.with_status(Status::try_from(value.to_string())?),
             None => changeset,
         };
 
-        let changeset = match matches.value_of("prio") {
+        let changeset = match matches.get_one::<String>("prio") {
             Some(s) => changeset.with_prio(Prio::try_from(s.to_string())?),
             None => changeset,
         };
 
-        let changeset = match matches.value_of("description") {
+        let changeset = match matches.get_one::<String>("description") {
             Some(s) => changeset.with_description(s.to_string()),
             None => changeset,
         };
 
-        let changeset = match matches.value_of("context") {
+        let changeset = match matches.get_one::<String>("context") {
             Some(s) => changeset.with_context(s.to_string()),
             None => changeset,
         };
@@ -246,14 +247,18 @@ impl Cli {
         let todo = self.service.update_todo(&id, changeset).await?;
 
         // Linking requires additional rules and validation
-        if let Some(links) = matches.values_of("link") {
+        if let Some(links) = matches.get_many::<String>("link") {
             for link in links {
-                self.service.link(todo.id, Link::try_from(link)?).await?;
+                self.service
+                    .link(todo.id, Link::try_from(link.as_str())?)
+                    .await?;
             }
         }
-        if let Some(links) = matches.values_of("unlink") {
+        if let Some(links) = matches.get_many::<String>("unlink") {
             for link in links {
-                self.service.unlink(todo.id, Link::try_from(link)?).await?;
+                self.service
+                    .unlink(todo.id, Link::try_from(link.as_str())?)
+                    .await?;
             }
         }
 
@@ -268,7 +273,7 @@ impl Cli {
                 None => println!("No context currently set."),
             },
             Some(("add", sub_matches)) => {
-                let cx = match sub_matches.value_of("name") {
+                let cx = match sub_matches.get_one::<String>("name") {
                     Some(n) => n.to_string(),
                     None => self.prompt.line("Name", false)?,
                 };
@@ -285,7 +290,7 @@ impl Cli {
                 }
             }
             Some(("set", sub_matches)) => {
-                let cx = match sub_matches.value_of("name") {
+                let cx = match sub_matches.get_one::<String>("name") {
                     Some(name) => name.to_string(),
                     None => {
                         if let Some(cx) = self.select_context().await? {
@@ -314,7 +319,7 @@ impl Cli {
                 }
             }
             Some(("remove", sub_matches)) => {
-                let cx = match sub_matches.value_of("name") {
+                let cx = match sub_matches.get_one::<String>("name") {
                     Some(name) => name.to_string(),
                     None => {
                         if let Some(cx) = self.select_context().await? {
@@ -324,7 +329,7 @@ impl Cli {
                         }
                     }
                 };
-                let cascade = sub_matches.is_present("cascade");
+                let cascade = sub_matches.contains_id("cascade");
 
                 self.service.remove_context(&cx, cascade).await?;
                 println!("Removed context {}", cx);
@@ -335,7 +340,7 @@ impl Cli {
     }
 
     async fn handle_remove(&self, matches: &ArgMatches) -> Result<()> {
-        let yes = matches.is_present("yes");
+        let yes = matches.contains_id("yes");
         let ids = Self::get_ids(matches)?;
 
         for id in ids {
@@ -356,7 +361,7 @@ impl Cli {
     }
 
     fn get_description(&self, matches: &ArgMatches) -> Result<String> {
-        if let Some(s) = matches.value_of("description") {
+        if let Some(s) = matches.get_one::<String>("description") {
             log::info!("Using description from flag");
             return Ok(s.to_string());
         }
@@ -388,7 +393,7 @@ impl Cli {
     }
 
     fn get_ids(matches: &ArgMatches) -> Result<Vec<ID>> {
-        let ids = match matches.values_of("ids") {
+        let ids = match matches.get_many::<String>("ids") {
             Some(ids) => ids,
             None => return err!("no IDs provided"),
         };

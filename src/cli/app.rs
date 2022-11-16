@@ -1,4 +1,4 @@
-use clap::{command, Arg, Command};
+use clap::{builder::PossibleValuesParser, command, Arg, ArgAction, Command};
 
 pub fn build_app() -> Command<'static> {
     command!()
@@ -13,7 +13,9 @@ default behaviour of the list command.",
                 .long("log")
                 .help("Enables logging output of the specified level.")
                 .takes_value(true)
-                .possible_values(&["debug", "info", "warning", "error"])
+                .value_parser(PossibleValuesParser::new([
+                    "debug", "info", "warning", "error",
+                ]))
                 .global(true),
         )
         .arg(
@@ -66,7 +68,7 @@ a todo use the sub-command 'get'.",
                 .short('s')
                 .help("Filter on status.")
                 .takes_value(true)
-                .possible_values(&["any", "new", "started", "done"]),
+                .value_parser(PossibleValuesParser::new(["any", "new", "started", "done"])),
         )
         .arg(
             Arg::new("context")
@@ -117,7 +119,9 @@ queried interactively like so:
             Arg::new("prio")
                 .long("prio")
                 .takes_value(true)
-                .possible_values(&["low", "normal", "high", "cirital"])
+                .value_parser(PossibleValuesParser::new([
+                    "low", "normal", "high", "cirital",
+                ]))
                 .help("Sets another priority than the default: normal."),
         )
 }
@@ -151,7 +155,7 @@ pub fn update() -> Command<'static> {
                 .short('s')
                 .takes_value(true)
                 .help("New status of the todo.")
-                .possible_values(&["new", "started", "done"]),
+                .value_parser(PossibleValuesParser::new(["new", "started", "done"])),
         )
         .arg(
             Arg::new("prio")
@@ -159,7 +163,9 @@ pub fn update() -> Command<'static> {
                 .short('p')
                 .takes_value(true)
                 .help("New priority of the todo.")
-                .possible_values(&["low", "normal", "high", "critical"]),
+                .value_parser(PossibleValuesParser::new([
+                    "low", "normal", "high", "critical",
+                ])),
         )
         .arg(
             Arg::new("context")
@@ -182,14 +188,14 @@ Some links are bi-directional: `a blocks b` implices `b blocked by a`.
 ",
                 )
                 .takes_value(true)
-                .multiple_occurrences(true),
+                .action(ArgAction::Append),
         )
         .arg(
             Arg::new("unlink")
                 .long("unlink")
                 .help("Removes a link by type:id. See --link for valid options.")
                 .takes_value(true)
-                .multiple_occurrences(true),
+                .action(ArgAction::Append),
         )
 }
 
