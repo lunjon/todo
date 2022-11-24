@@ -32,6 +32,7 @@ default behaviour of the list command.",
         .subcommand(update())
         .subcommand(remove())
         .subcommand(context())
+        .subcommand(starship())
 }
 
 fn show() -> Command<'static> {
@@ -303,4 +304,10 @@ via the 'context add' sub-command.",
                 ),
         )
         .subcommand(Command::new("list").about("Lists all contexts that have been created."))
+}
+
+fn starship() -> Command<'static> {
+    Command::new("starship")
+        .about("Output information for Starship Prompt.")
+        .arg(Arg::new("when").long("when").takes_value(false))
 }

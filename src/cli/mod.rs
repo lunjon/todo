@@ -7,6 +7,7 @@ use crate::service::{ContextFilter, Filter, Service, StatusFilter};
 use crate::style::{Color, Styler};
 use clap::ArgMatches;
 use std::path::PathBuf;
+use std::process;
 
 mod app;
 mod prompt;
@@ -56,6 +57,7 @@ impl Cli {
             Some(("start", sub_matches)) => self.handle_start(sub_matches).await?,
             Some(("update", sub_matches)) => self.handle_update(sub_matches).await?,
             Some(("context", sub_matches)) => self.handle_context(sub_matches).await?,
+            Some(("starship", sub_matches)) => self.handle_starship(sub_matches).await?,
             _ => unreachable!(),
         }
 
@@ -357,6 +359,21 @@ impl Cli {
                 }
             }
         }
+        Ok(())
+    }
+
+    async fn handle_starship(&self, matches: &ArgMatches) -> Result<()> {
+        let todos = self.service.list_todos(Some(Filter::default())).await?;
+
+        if matches.contains_id("when") {
+            if todos.is_empty() {
+                process::exit(1);
+            } else {
+                process::exit(0);
+            }
+        }
+
+        println!("todo: {}", todos.len());
         Ok(())
     }
 
