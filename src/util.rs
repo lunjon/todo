@@ -2,7 +2,7 @@ use crate::error::Result;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::fs;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::Path;
 
 pub fn random_string(size: usize) -> String {
@@ -26,6 +26,16 @@ pub fn read_file(path: &Path) -> Result<String> {
     file.read_to_string(&mut buf)?;
     Ok(buf)
 }
+
+pub fn write_file(path: &Path, content: &str) -> Result<()> {
+    let mut file = fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(path)?;
+    file.write_all(content.as_bytes())?;
+    Ok(())
+}
+
 pub fn word_chunks(s: &str, size: usize) -> Vec<String> {
     let mut lines = Vec::new();
     for line in s.lines() {

@@ -91,10 +91,7 @@ pub fn add() -> Command<'static> {
         .alias("new")
         .about("Adds a new todo.")
         .long_about(
-            "Adds a new todo. Required parameters not passed via options are
-queried interactively like so:
-  > required
-  ? optional",
+            "Adds a new todo. Required parameters not passed via options are queried interactively."
         )
         .arg(
             Arg::new("subject")
@@ -111,11 +108,11 @@ queried interactively like so:
                 .takes_value(true),
         )
         .arg(
-            Arg::new("tags")
-                .long("tags")
+            Arg::new("tag")
+                .long("tag")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("Tags for the todo. Must be single word strings, seperated by whitespace, with a length less than 20."),
+                .help("Tag the todo. Must be a single word. Can be passed multiple times."),
         )
         .arg(
             Arg::new("prio")
@@ -130,12 +127,32 @@ queried interactively like so:
 
 pub fn update() -> Command<'static> {
     Command::new("update")
-        .about("Updates a todo. Only updates fields provided in the options.")
+        .about(
+            "Updates a todo. Only updates fields provided in the options,
+if not --edit is passed.",
+        )
         .arg(
             Arg::new("id")
                 .takes_value(true)
                 .required(true)
                 .help("ID of the todo to update."),
+        )
+        .arg(
+            Arg::new("edit")
+                .long("edit")
+                .help(
+                    "Edit the todo in a file in an editor.
+Requires VISUAL or EDITOR environment variable.",
+                )
+                .required(false)
+                .conflicts_with_all(&[
+                    "subject",
+                    "status",
+                    "prio",
+                    "description",
+                    "link",
+                    "context",
+                ]),
         )
         .arg(
             Arg::new("subject")

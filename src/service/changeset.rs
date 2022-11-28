@@ -8,6 +8,7 @@ pub struct Changeset {
     description: Option<String>,
     context: Option<String>,
     links: Option<CSV<Link>>,
+    tags: Option<CSV<String>>,
     updated: bool,
 }
 
@@ -31,6 +32,9 @@ impl Changeset {
         }
         if let Some(s) = self.context {
             todo.context = Some(s);
+        }
+        if let Some(s) = self.tags {
+            todo.tags = s;
         }
         if let Some(s) = self.links {
             todo.links = s;
@@ -64,6 +68,12 @@ impl Changeset {
     pub fn with_context(mut self, cx: String) -> Self {
         self.updated = true;
         self.context = Some(cx);
+        self
+    }
+
+    pub fn with_tags(mut self, tags: CSV<String>) -> Self {
+        self.updated = true;
+        self.tags = Some(tags);
         self
     }
 

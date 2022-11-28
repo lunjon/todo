@@ -1,12 +1,13 @@
 use crate::err;
 use crate::error::Error;
 use crate::style::{Color, StyleDisplay, Styler};
+use serde::de::Visitor;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt;
 
 /// Status represents the state of a Todo.
-#[derive(Clone, Debug, Deserialize, Eq, Serialize, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Status {
     /// A newly created todo.
     New,
@@ -16,6 +17,44 @@ pub enum Status {
     Done,
     /// This is blocked by another todo.
     Blocked,
+}
+
+impl Serialize for Status {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+struct StatusVisitor;
+
+impl<'de> Visitor<'de> for StatusVisitor {
+    type Value = Status;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        match Status::try_from(v) {
+            Ok(s) => Ok(s),
+            Err(_) => Err(serde::de::Error::custom("invalid status")),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Status {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_str(StatusVisitor)
+    }
 }
 
 use Status::*;

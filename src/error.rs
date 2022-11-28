@@ -95,6 +95,18 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+impl From<toml::ser::Error> for Error {
+    fn from(err: toml::ser::Error) -> Self {
+        Self::new(err.to_string())
+    }
+}
+
+impl From<toml::de::Error> for Error {
+    fn from(err: toml::de::Error) -> Self {
+        Self::new(err.to_string())
+    }
+}
+
 impl From<inquire::InquireError> for Error {
     fn from(err: inquire::InquireError) -> Self {
         Error::new(err.to_string())
