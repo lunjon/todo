@@ -88,6 +88,7 @@ a todo use the sub-command 'get'.",
 
 pub fn add() -> Command<'static> {
     Command::new("add")
+        .alias("new")
         .about("Adds a new todo.")
         .long_about(
             "Adds a new todo. Required parameters not passed via options are
@@ -98,15 +99,15 @@ queried interactively like so:
         .arg(
             Arg::new("subject")
                 .long("subject")
-                .short('t')
-                .help("Subject for the todo.")
+                .short('s')
+                .help("Subject of the todo.")
                 .takes_value(true),
         )
         .arg(
             Arg::new("description")
                 .long("description")
                 .short('d')
-                .help("Description")
+                .help("Description of the todo.")
                 .takes_value(true),
         )
         .arg(
@@ -114,7 +115,7 @@ queried interactively like so:
                 .long("tags")
                 .multiple_values(true)
                 .takes_value(true)
-                .help("Tags for the todo. Must be single word strings with a length less than 20."),
+                .help("Tags for the todo. Must be single word strings, seperated by whitespace, with a length less than 20."),
         )
         .arg(
             Arg::new("prio")
