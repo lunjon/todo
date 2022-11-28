@@ -1,3 +1,4 @@
+use crate::model::Prio;
 use clap::{builder::PossibleValuesParser, command, Arg, ArgAction, Command};
 
 pub fn build_app() -> Command<'static> {
@@ -182,9 +183,7 @@ Requires VISUAL or EDITOR environment variable.",
                 .short('p')
                 .takes_value(true)
                 .help("New priority of the todo.")
-                .value_parser(PossibleValuesParser::new([
-                    "low", "normal", "high", "critical",
-                ])),
+                .value_parser(Prio::values()),
         )
         .arg(
             Arg::new("context")

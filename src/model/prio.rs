@@ -14,6 +14,12 @@ pub enum Prio {
     Critical,
 }
 
+impl Prio {
+    pub fn values() -> [&'static str; 4] {
+        ["low", "normal", "high", "critical"]
+    }
+}
+
 impl PartialOrd for Prio {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
