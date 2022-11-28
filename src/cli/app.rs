@@ -48,7 +48,7 @@ fn show() -> Command<'static> {
 
 fn list() -> Command<'static> {
     Command::new("list")
-        .alias("ls")
+        .visible_alias("ls")
         .about("List todos. Defaults to only listing todos with status != done.")
         .long_about(
             "List todos. Defaults to only listing todos with status != done
@@ -88,7 +88,7 @@ a todo use the sub-command 'get'.",
 
 pub fn add() -> Command<'static> {
     Command::new("add")
-        .alias("new")
+        .visible_alias("new")
         .about("Adds a new todo.")
         .long_about(
             "Adds a new todo. Required parameters not passed via options are queried interactively."
@@ -239,7 +239,6 @@ Only valid IDs of type unsigned integers will be considered.",
 
 fn start() -> Command<'static> {
     Command::new("start")
-        .alias("begin")
         .about("Set status of one or more todos to started.")
         .long_about(
             "Marks one or more todos as done.
@@ -255,7 +254,7 @@ To update other fields use the 'update' command.",
 
 fn remove() -> Command<'static> {
     Command::new("remove")
-        .alias("rm")
+        .visible_alias("rm")
         .about("Removes one or more todos.")
         .arg(
             Arg::new("ids")
@@ -274,7 +273,7 @@ fn remove() -> Command<'static> {
 
 fn context() -> Command<'static> {
     Command::new("context")
-        .alias("ctx")
+        .visible_alias("ctx")
         .about("Shows the current context, if any. See sub-commands for managing contexts.")
         .long_about(
             "Contexts are used to associate todos with a certain context,
@@ -305,7 +304,7 @@ via the 'context add' sub-command.",
         .subcommand(Command::new("unset").about("Unset current context, in any."))
         .subcommand(
             Command::new("remove")
-                .alias("rm")
+                .visible_alias("rm")
                 .about("Removes one or more contexts")
                 .arg(
                     Arg::new("cascade")
