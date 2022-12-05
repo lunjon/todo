@@ -7,7 +7,7 @@ test:
 fmt:
     cargo fmt
 lint:
-    cargo clippy
+    cargo clippy --fix --allow-dirty
 
 install:
     cargo install --path .

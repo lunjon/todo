@@ -65,10 +65,7 @@ impl EditorBuilder {
     }
 
     pub fn build(&self, file_ext: Option<&str>) -> Result<Editor> {
-        let ext = match file_ext {
-            Some(e) => e,
-            None => "",
-        };
+        let ext = file_ext.unwrap_or("");
 
         let path = env::temp_dir().join(format!("todo-{}{}", util::random_string(8), ext));
         let editor = if let Some(e) = util::try_get_env("EDITOR") {

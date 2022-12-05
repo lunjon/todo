@@ -284,75 +284,43 @@ impl Cli {
     }
 
     async fn handle_context(&self, matches: &ArgMatches) -> Result<()> {
-        match matches.subcommand() {
-            None => match self.service.get_context().await? {
+        if let Some(cx) = matches.get_one::<String>("add") {
+            self.service.add_context(cx).await?;
+            println!(
+                "Added new context with name {}.",
+                self.green_styler.style(cx)
+            );
+
+            if self.prompt.confirm("Activate new context?", false)? {
+                self.service.set_context(cx).await?;
+                println!("Context set to {}.", self.green_styler.style(cx));
+            }
+        } else if let Some(cx) = matches.get_one::<String>("set") {
+            self.service.set_context(cx).await?;
+            println!("Context set to {}.", self.green_styler.style(cx));
+        } else if let Some(cx) = matches.get_one::<String>("set") {
+            let cascade = matches.contains_id("cascade");
+            self.service.remove_context(cx, cascade).await?;
+            println!("Removed context {}", cx);
+        } else if matches.contains_id("unset") {
+            self.service.unset_context().await?;
+            println!("Current context unset.");
+        } else if matches.contains_id("list") {
+            let contexts = self.service.list_contexts().await?;
+            if contexts.is_empty() {
+                println!("No contexts created.");
+            } else {
+                for ctx in contexts {
+                    println!("{ctx}");
+                }
+            }
+        } else {
+            match self.service.get_context().await? {
                 Some(cx) => println!("Context currently set to {}.", self.green_styler.style(&cx)),
                 None => println!("No context currently set."),
-            },
-            Some(("add", sub_matches)) => {
-                let cx = match sub_matches.get_one::<String>("name") {
-                    Some(n) => n.to_string(),
-                    None => self.prompt.line("Name", false)?,
-                };
-
-                self.service.add_context(&cx).await?;
-                println!(
-                    "Added new context with name {}.",
-                    self.green_styler.style(&cx)
-                );
-
-                if self.prompt.confirm("Activate new context?", false)? {
-                    self.service.set_context(&cx).await?;
-                    println!("Context set to {}.", self.green_styler.style(&cx));
-                }
             }
-            Some(("set", sub_matches)) => {
-                let cx = match sub_matches.get_one::<String>("name") {
-                    Some(name) => name.to_string(),
-                    None => {
-                        if let Some(cx) = self.select_context().await? {
-                            cx
-                        } else {
-                            return Ok(());
-                        }
-                    }
-                };
-
-                self.service.set_context(&cx).await?;
-                println!("Context set to {}.", self.green_styler.style(&cx));
-            }
-            Some(("unset", _)) => {
-                self.service.unset_context().await?;
-                println!("Current context unset.");
-            }
-            Some(("list", _)) => {
-                let contexts = self.service.list_contexts().await?;
-                if contexts.is_empty() {
-                    println!("No contexts created.");
-                } else {
-                    for ctx in contexts {
-                        println!("{ctx}");
-                    }
-                }
-            }
-            Some(("remove", sub_matches)) => {
-                let cx = match sub_matches.get_one::<String>("name") {
-                    Some(name) => name.to_string(),
-                    None => {
-                        if let Some(cx) = self.select_context().await? {
-                            cx
-                        } else {
-                            return Ok(());
-                        }
-                    }
-                };
-                let cascade = sub_matches.contains_id("cascade");
-
-                self.service.remove_context(&cx, cascade).await?;
-                println!("Removed context {}", cx);
-            }
-            _ => unreachable!(),
         }
+
         Ok(())
     }
 
@@ -411,17 +379,6 @@ impl Cli {
             "Skip" => Ok(String::new()),
             _ => unreachable!(),
         }
-    }
-
-    async fn select_context(&self) -> Result<Option<String>> {
-        let contexts = self.service.list_contexts().await?;
-        if contexts.is_empty() {
-            println!("No contexts created.");
-            return Ok(None);
-        }
-
-        let cx = self.prompt.select("Select context", contexts)?;
-        Ok(Some(cx))
     }
 
     fn get_ids(matches: &ArgMatches) -> Result<Vec<ID>> {

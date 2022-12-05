@@ -88,7 +88,7 @@ fn build_todos() -> Vec<Todo> {
     vec![
         Todo::new(
             ID::new(1),
-            now.clone(),
+            now,
             Status::New,
             Prio::Normal,
             "new|no tags|no context".to_string(),
@@ -99,7 +99,7 @@ fn build_todos() -> Vec<Todo> {
         ),
         Todo::new(
             ID::new(2),
-            now.clone(),
+            now,
             Status::New,
             Prio::Normal,
             "new|feat|no context".to_string(),
@@ -110,7 +110,7 @@ fn build_todos() -> Vec<Todo> {
         ),
         Todo::new(
             ID::new(3),
-            now.clone(),
+            now,
             Status::New,
             Prio::Normal,
             "new|feat,test|no context".to_string(),
@@ -121,7 +121,7 @@ fn build_todos() -> Vec<Todo> {
         ),
         Todo::new(
             ID::new(4),
-            now.clone(),
+            now,
             Status::New,
             Prio::Normal,
             "new|no tags|context:home".to_string(),
@@ -132,7 +132,7 @@ fn build_todos() -> Vec<Todo> {
         ),
         Todo::new(
             ID::new(5),
-            now.clone(),
+            now,
             Status::Done,
             Prio::Normal,
             "done|test|context:home".to_string(),

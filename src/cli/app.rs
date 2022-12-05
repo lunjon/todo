@@ -272,6 +272,7 @@ fn remove() -> Command<'static> {
 
 fn context() -> Command<'static> {
     Command::new("context")
+        .visible_alias("cx")
         .visible_alias("ctx")
         .about("Shows the current context, if any. See sub-commands for managing contexts.")
         .long_about(
@@ -282,44 +283,55 @@ greater than 2 and no more than 10.
 Before a context can be referenced, i.e. set, it must be created
 via the 'context add' sub-command.",
         )
-        .subcommand(
-            Command::new("add").about("Adds a new context.").arg(
-                Arg::new("name")
-                    .long("name")
-                    .short('n')
-                    .takes_value(true)
-                    .help("Name of the new context."),
-            ),
+        .arg(
+            Arg::new("add")
+                .long("add")
+                .short('a')
+                .help("Add new context with the given name.")
+                .value_name("NAME")
+                .exclusive(true),
         )
-        .subcommand(
-            Command::new("set").about("Set context.").arg(
-                Arg::new("name")
-                    .long("name")
-                    .short('n')
-                    .takes_value(true)
-                    .help("Name of the context to set."),
-            ),
+        .arg(
+            Arg::new("set")
+                .long("set")
+                .short('s')
+                .help("Set context with the given name.")
+                .value_name("NAME")
+                .exclusive(true),
         )
-        .subcommand(Command::new("unset").about("Unset current context, in any."))
-        .subcommand(
-            Command::new("remove")
-                .visible_alias("rm")
-                .about("Removes one or more contexts")
-                .arg(
-                    Arg::new("cascade")
-                        .long("cascade")
-                        .takes_value(false)
-                        .help("Remove all todos associated with context."),
-                )
-                .arg(
-                    Arg::new("name")
-                        .long("name")
-                        .short('n')
-                        .takes_value(true)
-                        .help("Name of the contexts to remove."),
-                ),
+        .arg(
+            Arg::new("remove")
+                .long("remove")
+                .short('r')
+                .help("Remove context with the given name.")
+                .value_name("NAME")
+                .conflicts_with_all(&["add", "list", "set", "unset"])
+                .exclusive(false),
         )
-        .subcommand(Command::new("list").about("Lists all contexts that have been created."))
+        .arg(
+            Arg::new("cascade")
+                .long("cascade")
+                .takes_value(false)
+                .requires("remove")
+                .help("Remove all todos associated with context."),
+        )
+        .arg(
+            Arg::new("list")
+                .long("list")
+                .short('l')
+                .help("List available contexts.")
+                // .action(ArgAction::SetTrue)
+                .takes_value(false)
+                .exclusive(true),
+        )
+        .arg(
+            Arg::new("unset")
+                .long("unset")
+                .short('u')
+                .help("Unset current context if set.")
+                .takes_value(false)
+                .exclusive(true),
+        )
 }
 
 fn starship() -> Command<'static> {

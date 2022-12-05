@@ -20,10 +20,10 @@ async fn remove_done_todo() -> Result<()> {
 #[tokio::test]
 async fn remove_unknown() -> Result<()> {
     let fixture = Fixture::setup().await?;
-    let err = match fixture.svc.remove_todo(&ID::new(9999)).await {
-        Err(Error::NotFound(_)) => true,
-        _ => false,
-    };
+    let err = matches!(
+        fixture.svc.remove_todo(&ID::new(9999)).await,
+        Err(Error::NotFound(_))
+    );
     assert!(err);
     Ok(())
 }
