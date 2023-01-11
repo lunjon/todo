@@ -292,11 +292,11 @@ via the 'context add' sub-command.",
                 .exclusive(true),
         )
         .arg(
-            Arg::new("set")
-                .long("set")
-                .short('s')
-                .help("Set context with the given name.")
-                .value_name("NAME")
+            Arg::new("list")
+                .long("list")
+                .short('l')
+                .help("List available contexts.")
+                .takes_value(false)
                 .exclusive(true),
         )
         .arg(
@@ -316,12 +316,11 @@ via the 'context add' sub-command.",
                 .help("Remove all todos associated with context."),
         )
         .arg(
-            Arg::new("list")
-                .long("list")
-                .short('l')
-                .help("List available contexts.")
-                // .action(ArgAction::SetTrue)
-                .takes_value(false)
+            Arg::new("set")
+                .long("set")
+                .short('s')
+                .help("Set context with the given name.")
+                .value_name("NAME")
                 .exclusive(true),
         )
         .arg(

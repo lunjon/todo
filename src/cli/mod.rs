@@ -298,7 +298,7 @@ impl Cli {
         } else if let Some(cx) = matches.get_one::<String>("set") {
             self.service.set_context(cx).await?;
             println!("Context set to {}.", self.green_styler.style(cx));
-        } else if let Some(cx) = matches.get_one::<String>("set") {
+        } else if let Some(cx) = matches.get_one::<String>("remove") {
             let cascade = matches.contains_id("cascade");
             self.service.remove_context(cx, cascade).await?;
             println!("Removed context {}", cx);
