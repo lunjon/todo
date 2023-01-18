@@ -175,7 +175,9 @@ Requires VISUAL or EDITOR environment variable.",
                 .short('s')
                 .takes_value(true)
                 .help("New status of the todo.")
-                .value_parser(PossibleValuesParser::new(["new", "started", "done"])),
+                .value_parser(PossibleValuesParser::new([
+                    "new", "started", "done", "blocked",
+                ])),
         )
         .arg(
             Arg::new("prio")
