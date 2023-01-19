@@ -52,6 +52,7 @@ impl Service {
         tags: CSV<String>,
     ) -> Result<Todo> {
         let context = self.get_context().await?;
+        log::info!("Adding new todo in context: {:?}", context);
 
         let now = Local::now();
         let tmp = Todo::new(

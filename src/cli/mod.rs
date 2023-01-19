@@ -144,6 +144,7 @@ impl Cli {
             Some(s) => s.to_string(),
             None => self.prompt.line("subject>", false)?,
         };
+        log::debug!("New todo: subject={}", subject);
 
         let prio = match matches.get_one::<String>("prio") {
             Some(s) => Prio::try_from(s.to_string())?,
@@ -164,9 +165,10 @@ impl Cli {
                 s => Prio::try_from(s.to_string())?,
             },
         };
-        log::info!("Priority: {}", &prio);
+        log::info!("New todo: priority={}", &prio);
 
         let description = self.get_description(matches)?;
+        log::info!("New todo: description={}", &prio);
 
         let tags: Vec<String> = match matches.get_many::<String>("tag") {
             Some(s) => s.map(String::from).collect(),
@@ -179,11 +181,13 @@ impl Cli {
                 s => s.split(',').map(|s| s.trim().to_string()).collect(),
             },
         };
+        log::debug!("New todo: tags={:?}", tags);
 
         let todo = self
             .service
             .add_todo(Status::New, prio, subject, description, CSV::new(tags))
             .await?;
+
         println!("{}", self.formatter.todo(&todo));
 
         Ok(())

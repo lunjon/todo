@@ -68,6 +68,8 @@ impl Repository {
         .fetch_one(&self.pool)
         .await?;
 
+        log::debug!("Added todo in db");
+
         Ok(todo)
     }
 
@@ -87,6 +89,9 @@ impl Repository {
         .bind(todo.links.encode())
         .execute(&self.pool)
         .await?;
+
+        log::debug!("Todo with id {} updated in db", todo.id);
+
         Ok(())
     }
 
@@ -99,6 +104,9 @@ impl Repository {
         .map(map_todo)
         .fetch_one(&self.pool)
         .await?;
+
+        log::debug!("Todo with id {} removed in db", id);
+
         Ok(todo)
     }
 }
@@ -135,6 +143,9 @@ impl Repository {
             .bind(context)
             .execute(&self.pool)
             .await?;
+
+        log::debug!("Context set to: {context}");
+
         Ok(())
     }
 
@@ -143,6 +154,9 @@ impl Repository {
         sqlx::query("UPDATE context SET value = NULL WHERE id = 1")
             .execute(&self.pool)
             .await?;
+
+        log::debug!("Context unset in db");
+
         Ok(())
     }
 
@@ -152,6 +166,9 @@ impl Repository {
             .bind(context)
             .execute(&self.pool)
             .await?;
+
+        log::debug!("Context added to db: {context}");
+
         Ok(())
     }
 
@@ -161,6 +178,9 @@ impl Repository {
             .bind(context)
             .execute(&self.pool)
             .await?;
+
+        log::debug!("Context removed from db: {context}");
+
         Ok(())
     }
 }
@@ -178,8 +198,10 @@ fn map_todo(row: SqliteRow) -> Todo {
     let links: Option<String> = row.get("links");
     let links: CSV<Link> = match links {
         Some(s) => CSV::decode(&s),
-        None => CSV::new(vec![]),
+        None => CSV::empty(),
     };
+
+    log::debug!("Succesfully mapped from sqlite row -> todo");
 
     Todo::new(
         ID::new(row.get("id")),
