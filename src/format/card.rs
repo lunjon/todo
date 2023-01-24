@@ -44,6 +44,12 @@ impl Card {
         lines.push(subject);
         lines.push("".to_string());
 
+        lines.push(format!(
+            "{}:     {}",
+            self.bold_white.style("Created"),
+            &todo.created
+        ));
+
         let (status, prio) = if self.color {
             (todo.status.style(), todo.prio.style())
         } else {
