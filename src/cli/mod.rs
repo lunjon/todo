@@ -3,7 +3,7 @@ use crate::error::Result;
 use crate::format::{Card, Formatter, TableFormatter};
 use crate::model::{Link, Prio, Status, CSV, ID};
 use crate::service::changeset::Changeset;
-use crate::service::{ContextFilter, Filter, Service, StatusFilter};
+use crate::service::{ContextFilter, Filter, PruneFilter, Service, StatusFilter};
 use crate::style::{Color, Styler};
 use clap::ArgMatches;
 use std::path::PathBuf;
@@ -58,6 +58,7 @@ impl Cli {
             Some(("update", sub_matches)) => self.handle_update(sub_matches).await?,
             Some(("context", sub_matches)) => self.handle_context(sub_matches).await?,
             Some(("starship", sub_matches)) => self.handle_starship(sub_matches).await?,
+            Some(("prune", sub_matches)) => self.handle_prune(sub_matches).await?,
             _ => unreachable!(),
         }
 
@@ -362,6 +363,11 @@ impl Cli {
 
         println!("todo: {}", todos.len());
         Ok(())
+    }
+
+    async fn handle_prune(&self, matches: &ArgMatches) -> Result<()> {
+        let filter = PruneFilter::default().with_done(matches.contains_id("done"));
+        self.service.prune(filter).await
     }
 
     fn get_description(&self, matches: &ArgMatches) -> Result<String> {

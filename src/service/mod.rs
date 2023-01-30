@@ -38,7 +38,9 @@ impl Service {
             None => todos,
         };
 
+        log::info!("Listed {} todos", todos.len());
         todos.sort();
+
         Ok(todos)
     }
 
@@ -291,6 +293,7 @@ impl Service {
         self.repo.replace_todo(&blocked).await?;
         Ok(blocker)
     }
+
     async fn link_block(&self, blocker: ID, blocked: ID) -> Result<Todo> {
         let blocks_link = Link::Blocks(blocked);
         let blocked_by_link = Link::BlockedBy(blocker);
@@ -339,6 +342,21 @@ impl Service {
         todo.links = todo.links.remove(&link);
         self.repo.replace_todo(&todo).await?;
         Ok(todo)
+    }
+}
+
+// Context.
+impl Service {
+    pub async fn prune(&self, f: PruneFilter) -> Result<()> {
+        let todos = self.list_todos(None).await?;
+        let todos = f.apply(todos);
+        log::info!("{} todos left after filtering", todos.len());
+
+        for t in todos {
+            self.remove_todo(&t.id).await?;
+        }
+
+        Ok(())
     }
 }
 

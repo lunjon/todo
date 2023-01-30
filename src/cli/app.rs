@@ -1,6 +1,8 @@
 use crate::model::Prio;
 use clap::{builder::PossibleValuesParser, command, Arg, ArgAction, Command};
 
+const STATUSES: [&str; 5] = ["any", "new", "started", "done", "blocked"];
+
 pub fn build_app() -> Command<'static> {
     command!()
         .about("CLI tool for managing tasks.")
@@ -34,6 +36,7 @@ default behaviour of the list command.",
         .subcommand(remove())
         .subcommand(context())
         .subcommand(starship())
+        .subcommand(prune())
 }
 
 fn show() -> Command<'static> {
@@ -70,7 +73,7 @@ a todo use the sub-command 'get'.",
                 .short('s')
                 .help("Filter on status.")
                 .takes_value(true)
-                .value_parser(PossibleValuesParser::new(["any", "new", "started", "done"])),
+                .value_parser(PossibleValuesParser::new(STATUSES)),
         )
         .arg(
             Arg::new("context")
@@ -338,5 +341,15 @@ via the 'context add' sub-command.",
 fn starship() -> Command<'static> {
     Command::new("starship")
         .about("Output information for Starship Prompt.")
+        .hide(true)
         .arg(Arg::new("when").long("when").takes_value(false))
+}
+
+fn prune() -> Command<'static> {
+    Command::new("prune").about("Prune todos.").arg(
+        Arg::new("done")
+            .help("Prune all todos with status 'done'.")
+            .long("done")
+            .takes_value(false),
+    )
 }

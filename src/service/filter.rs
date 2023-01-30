@@ -1,4 +1,5 @@
 use crate::model::{Status, Todo};
+use chrono::{DateTime, Local};
 
 /// Used to filter based on status.
 pub enum StatusFilter {
@@ -87,6 +88,45 @@ impl Filter {
             .filter(|todo| match &self.tags {
                 Some(tags) => todo.tags.has_any(tags),
                 None => true,
+            })
+            .collect()
+    }
+}
+
+/// Filter targets for pruning.
+#[derive(Debug, Default)]
+pub struct PruneFilter {
+    /// Include all todos that are done.
+    done: bool,
+    /// Include all todos created before this time.
+    before: Option<DateTime<Local>>,
+    /// Include all todos created after this time.
+    after: Option<DateTime<Local>>,
+}
+
+impl PruneFilter {
+    pub fn with_done(mut self, done: bool) -> Self {
+        self.done = done;
+        self
+    }
+
+    pub fn with_before(mut self, before: DateTime<Local>) -> Self {
+        self.before = Some(before);
+        self
+    }
+
+    pub fn with_after(mut self, after: DateTime<Local>) -> Self {
+        self.after = Some(after);
+        self
+    }
+
+    pub fn apply(&self, todos: Vec<Todo>) -> Vec<Todo> {
+        todos
+            .into_iter()
+            .filter(|t| {
+                (self.done && t.is_done())
+                    || (self.before.is_some() && self.before.unwrap().gt(&t.created))
+                    || (self.after.is_some() && self.after.unwrap().lt(&t.created))
             })
             .collect()
     }

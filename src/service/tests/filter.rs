@@ -1,4 +1,6 @@
-use super::{ContextFilter, Filter, StatusFilter};
+use chrono::Days;
+
+use super::{ContextFilter, Filter, PruneFilter, StatusFilter};
 use crate::model::{Prio, Status, Todo, CSV, ID};
 
 #[test]
@@ -83,12 +85,40 @@ fn test_filter_tags() {
     assert_eq!(todos.len(), 2);
 }
 
+#[test]
+fn test_prune_filter_default() {
+    let todos = build_todos();
+    let filter = PruneFilter::default();
+    let todos = filter.apply(todos);
+    assert_eq!(todos.len(), 0);
+}
+
+#[test]
+fn test_prune_filter_done() {
+    let todos = build_todos();
+    let filter = PruneFilter::default().with_done(true);
+    let todos = filter.apply(todos);
+    assert_eq!(todos.len(), 1);
+}
+
+#[test]
+fn test_prune_filter_before() {
+    let todos = build_todos();
+    let before = chrono::Local::now().checked_sub_days(Days::new(2)).unwrap();
+    let filter = PruneFilter::default().with_before(before);
+    let todos = filter.apply(todos);
+    assert_eq!(todos.len(), 2);
+}
+
 fn build_todos() -> Vec<Todo> {
     let now = chrono::Local::now();
+    let yesterday = chrono::Local::now().checked_sub_days(Days::new(1)).unwrap();
+    let last_week = chrono::Local::now().checked_sub_days(Days::new(7)).unwrap();
+
     vec![
         Todo::new(
             ID::new(1),
-            now,
+            last_week,
             Status::New,
             Prio::Normal,
             "new|no tags|no context".to_string(),
@@ -99,7 +129,7 @@ fn build_todos() -> Vec<Todo> {
         ),
         Todo::new(
             ID::new(2),
-            now,
+            last_week,
             Status::New,
             Prio::Normal,
             "new|feat|no context".to_string(),
@@ -110,7 +140,7 @@ fn build_todos() -> Vec<Todo> {
         ),
         Todo::new(
             ID::new(3),
-            now,
+            yesterday,
             Status::New,
             Prio::Normal,
             "new|feat,test|no context".to_string(),
