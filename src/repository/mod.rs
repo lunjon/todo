@@ -43,6 +43,7 @@ impl Repository {
     }
 
     pub async fn add_todo(&self, todo: Todo) -> Result<Todo> {
+        let mut transaction = self.pool.begin().await?;
         let todo = sqlx::query(
             "INSERT INTO todos (
                 created,
@@ -65,8 +66,10 @@ impl Repository {
         .bind(todo.context)
         .bind(todo.links.encode())
         .map(map_todo)
-        .fetch_one(&self.pool)
+        .fetch_one(&mut transaction)
         .await?;
+
+        transaction.commit().await?;
 
         log::debug!("Added todo in db");
 
@@ -74,6 +77,7 @@ impl Repository {
     }
 
     pub async fn replace_todo(&self, todo: &Todo) -> Result<()> {
+        let mut transaction = self.pool.begin().await?;
         sqlx::query(
             "REPLACE INTO todos (id, created, status, prio, subject, description, tags, context, links)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
@@ -87,8 +91,10 @@ impl Repository {
         .bind(todo.tags.to_string())
         .bind(&todo.context)
         .bind(todo.links.encode())
-        .execute(&self.pool)
+        .execute(&mut transaction)
         .await?;
+
+        transaction.commit().await?;
 
         log::debug!("Todo with id {} updated in db", todo.id);
 
@@ -96,14 +102,17 @@ impl Repository {
     }
 
     pub async fn remove_todo(&self, id: &ID) -> Result<Todo> {
+        let mut transaction = self.pool.begin().await?;
         let todo = sqlx::query(
             "DELETE FROM todos WHERE id = $1
             RETURNING id, created, status, prio, subject, description, tags, context, links",
         )
         .bind(id.to_string())
         .map(map_todo)
-        .fetch_one(&self.pool)
+        .fetch_one(&mut transaction)
         .await?;
+
+        transaction.commit().await?;
 
         log::debug!("Todo with id {} removed in db", id);
 
@@ -122,6 +131,8 @@ impl Repository {
             })
             .fetch_one(&self.pool)
             .await?;
+
+        log::info!("Got current context: {:?}", context);
         Ok(context)
     }
 
@@ -139,21 +150,26 @@ impl Repository {
 
     // Sets the current context.
     pub async fn set_context(&self, context: &str) -> Result<()> {
+        let mut transaction = self.pool.begin().await?;
         sqlx::query("UPDATE context SET value = $1 WHERE id = 1")
             .bind(context)
-            .execute(&self.pool)
+            .execute(&mut transaction)
             .await?;
 
-        log::debug!("Context set to: {context}");
+        transaction.commit().await?;
 
+        log::debug!("Context set to: {context}");
         Ok(())
     }
 
     // Unsets the current context.
     pub async fn unset_context(&self) -> Result<()> {
+        let mut transaction = self.pool.begin().await?;
         sqlx::query("UPDATE context SET value = NULL WHERE id = 1")
-            .execute(&self.pool)
+            .execute(&mut transaction)
             .await?;
+
+        transaction.commit().await?;
 
         log::debug!("Context unset in db");
 
@@ -162,10 +178,13 @@ impl Repository {
 
     // Adds a new context name.
     pub async fn add_context(&self, context: &str) -> Result<()> {
+        let mut transaction = self.pool.begin().await?;
         sqlx::query("INSERT INTO contexts (name) VALUES ($1)")
             .bind(context)
-            .execute(&self.pool)
+            .execute(&mut transaction)
             .await?;
+
+        transaction.commit().await?;
 
         log::debug!("Context added to db: {context}");
 
@@ -174,10 +193,13 @@ impl Repository {
 
     // Removes a context ny name.
     pub async fn remove_context(&self, context: &str) -> Result<()> {
+        let mut transaction = self.pool.begin().await?;
         sqlx::query("DELETE FROM contexts WHERE name = $1")
             .bind(context)
-            .execute(&self.pool)
+            .execute(&mut transaction)
             .await?;
+
+        transaction.commit().await?;
 
         log::debug!("Context removed from db: {context}");
 
@@ -200,8 +222,6 @@ fn map_todo(row: SqliteRow) -> Todo {
         Some(s) => CSV::decode(&s),
         None => CSV::empty(),
     };
-
-    log::debug!("Succesfully mapped from sqlite row -> todo");
 
     Todo::new(
         ID::new(row.get("id")),
