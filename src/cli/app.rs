@@ -32,7 +32,8 @@ default behaviour of the list command.",
         .subcommand(add())
         .subcommand(done())
         .subcommand(start())
-        .subcommand(update())
+        .subcommand(set())
+        .subcommand(edit())
         .subcommand(remove())
         .subcommand(context())
         .subcommand(starship())
@@ -129,34 +130,14 @@ pub fn add() -> Command<'static> {
         )
 }
 
-pub fn update() -> Command<'static> {
-    Command::new("update")
-        .about(
-            "Updates a todo. Only updates fields provided in the options,
-if not --edit is passed.",
-        )
+pub fn set() -> Command<'static> {
+    Command::new("set")
+        .about("Set/update properties of a todo.")
         .arg(
             Arg::new("id")
                 .takes_value(true)
                 .required(true)
                 .help("ID of the todo to update."),
-        )
-        .arg(
-            Arg::new("edit")
-                .long("edit")
-                .help(
-                    "Edit the todo in a file in an editor.
-Requires VISUAL or EDITOR environment variable.",
-                )
-                .required(false)
-                .conflicts_with_all(&[
-                    "subject",
-                    "status",
-                    "prio",
-                    "description",
-                    "link",
-                    "context",
-                ]),
         )
         .arg(
             Arg::new("subject")
@@ -219,6 +200,24 @@ Some links are bi-directional: `a blocks b` implices `b blocked by a`.
                 .help("Removes a link by type:id. See --link for valid options.")
                 .takes_value(true)
                 .action(ArgAction::Append),
+        )
+}
+
+pub fn edit() -> Command<'static> {
+    Command::new("edit")
+        .about("Edit a todo with an editor.")
+        .arg(
+            Arg::new("id")
+                .takes_value(true)
+                .required(true)
+                .help("ID of the todo to update."),
+        )
+        .arg(
+            Arg::new("description")
+                .long("description")
+                .short('d')
+                .help("Edit only the description of the todo.")
+                .required(false),
         )
 }
 

@@ -125,6 +125,16 @@ impl Editor {
         Ok(cs)
     }
 
+    pub fn string(text: &str) -> Result<String> {
+        let mut builder = EditorBuilder::new();
+        for line in text.lines() {
+            builder.push(line.to_string());
+        }
+
+        let edited = builder.build(None)?.edit()?;
+        Ok(edited)
+    }
+
     pub fn edit(&self) -> Result<String> {
         let mut cmd = Command::new(&self.editor);
         cmd.arg(self.path.to_str().unwrap());

@@ -55,7 +55,8 @@ impl Cli {
             Some(("remove", sub_matches)) => self.handle_remove(sub_matches).await?,
             Some(("done", sub_matches)) => self.handle_done(sub_matches).await?,
             Some(("start", sub_matches)) => self.handle_start(sub_matches).await?,
-            Some(("update", sub_matches)) => self.handle_update(sub_matches).await?,
+            Some(("set", sub_matches)) => self.handle_set(sub_matches).await?,
+            Some(("edit", sub_matches)) => self.handle_edit(sub_matches).await?,
             Some(("context", sub_matches)) => self.handle_context(sub_matches).await?,
             Some(("starship", sub_matches)) => self.handle_starship(sub_matches).await?,
             Some(("prune", sub_matches)) => self.handle_prune(sub_matches).await?,
@@ -226,7 +227,7 @@ impl Cli {
         Ok(())
     }
 
-    async fn handle_update(&self, matches: &ArgMatches) -> Result<()> {
+    async fn handle_set(&self, matches: &ArgMatches) -> Result<()> {
         let id = Self::parse_id(matches.get_one::<String>("id").unwrap().as_str())?;
 
         let changeset = if matches.contains_id("edit") {
@@ -285,6 +286,26 @@ impl Cli {
         }
 
         println!("{}", self.formatter.todo(&todo));
+        Ok(())
+    }
+
+    async fn handle_edit(&self, matches: &ArgMatches) -> Result<()> {
+        let id = Self::parse_id(matches.get_one::<String>("id").unwrap().as_str())?;
+        log::info!("Updating todo with id {} from editor", id);
+
+        let todo = self.service.get_todo(&id).await?;
+        let changeset = if matches.contains_id("description") {
+            log::debug!("Only editing description of the todo");
+            let desc = Editor::string(&todo.description)?;
+            Changeset::default().with_description(desc)
+        } else {
+            log::debug!("Editing the whole todo");
+            Editor::todo(&todo)?
+        };
+
+        let todo = self.service.update_todo(&id, changeset).await?;
+        println!("{}", self.formatter.todo(&todo));
+
         Ok(())
     }
 
