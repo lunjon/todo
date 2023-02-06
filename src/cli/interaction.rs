@@ -120,6 +120,7 @@ impl Editor {
             .with_status(updated.status)
             .with_prio(prio)
             .with_description(updated.description)
+            .with_context(updated.context)
             .with_tags(tags);
 
         Ok(cs)
@@ -156,16 +157,23 @@ struct EditTodo {
     status: Status,
     prio: String,
     tags: Vec<String>,
+    context: String,
     description: String,
 }
 
 impl From<&Todo> for EditTodo {
     fn from(todo: &Todo) -> Self {
+        let c = match &todo.context {
+            Some(c) => c.to_string(),
+            None => "".to_string(),
+        };
+
         Self {
             subject: todo.subject.to_string(),
             status: todo.status.clone(),
             prio: todo.prio.to_string(),
             tags: todo.tags.display_values(),
+            context: c,
             description: todo.description.to_string(),
         }
     }
