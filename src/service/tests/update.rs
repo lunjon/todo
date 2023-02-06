@@ -61,6 +61,20 @@ async fn update_context() -> Result<()> {
     Ok(())
 }
 
+#[tokio::test]
+async fn unset_context() -> Result<()> {
+    let fixture = Fixture::setup().await?;
+    let todo = fixture
+        .svc
+        .update_todo(
+            &fixture.todo_new.id,
+            Changeset::default().with_context("".to_string()),
+        )
+        .await?;
+    assert_eq!(todo.context, None);
+    Ok(())
+}
+
 // Links
 
 #[tokio::test]

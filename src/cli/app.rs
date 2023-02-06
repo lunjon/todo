@@ -176,7 +176,7 @@ pub fn set() -> Command<'static> {
                 .long("context")
                 .short('c')
                 .takes_value(true)
-                .help("Sets context of the todo."),
+                .help("Sets context of the todo. Use empty string to unset the context."),
         )
         .arg(
             Arg::new("link")

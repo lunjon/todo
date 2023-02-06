@@ -6,7 +6,7 @@ pub struct Changeset {
     subject: Option<String>,
     prio: Option<Prio>,
     description: Option<String>,
-    context: Option<String>,
+    context: Option<Option<String>>,
     links: Option<CSV<Link>>,
     tags: Option<CSV<String>>,
     updated: bool,
@@ -31,7 +31,7 @@ impl Changeset {
             todo.description = s;
         }
         if let Some(s) = self.context {
-            todo.context = Some(s);
+            todo.context = s;
         }
         if let Some(s) = self.tags {
             todo.tags = s;
@@ -66,8 +66,13 @@ impl Changeset {
     }
 
     pub fn with_context(mut self, cx: String) -> Self {
+        log::info!("New cx: {}", &cx);
         self.updated = true;
-        self.context = Some(cx);
+        let value = match cx.as_str().trim() {
+            "" => None,
+            s => Some(s.to_string()),
+        };
+        self.context = Some(value);
         self
     }
 

@@ -230,41 +230,30 @@ impl Cli {
     async fn handle_set(&self, matches: &ArgMatches) -> Result<()> {
         let id = Self::parse_id(matches.get_one::<String>("id").unwrap().as_str())?;
 
-        let changeset = if matches.contains_id("edit") {
-            log::info!("Updating todo with id {} from editor", id);
+        let changeset = Changeset::default();
+        let changeset = match matches.get_one::<String>("subject") {
+            Some(s) => changeset.with_subject(s.to_string()),
+            None => changeset,
+        };
 
-            let todo = self.service.get_todo(&id).await?;
-            Editor::todo(&todo)?
-        } else {
-            log::info!("Updating todo with id {} from flags", id);
+        let changeset = match matches.get_one::<String>("status") {
+            Some(value) => changeset.with_status(Status::try_from(value.to_string())?),
+            None => changeset,
+        };
 
-            let changeset = Changeset::default();
-            let changeset = match matches.get_one::<String>("subject") {
-                Some(s) => changeset.with_subject(s.to_string()),
-                None => changeset,
-            };
+        let changeset = match matches.get_one::<String>("prio") {
+            Some(s) => changeset.with_prio(Prio::try_from(s.to_string())?),
+            None => changeset,
+        };
 
-            let changeset = match matches.get_one::<String>("status") {
-                Some(value) => changeset.with_status(Status::try_from(value.to_string())?),
-                None => changeset,
-            };
+        let changeset = match matches.get_one::<String>("description") {
+            Some(s) => changeset.with_description(s.to_string()),
+            None => changeset,
+        };
 
-            let changeset = match matches.get_one::<String>("prio") {
-                Some(s) => changeset.with_prio(Prio::try_from(s.to_string())?),
-                None => changeset,
-            };
-
-            let changeset = match matches.get_one::<String>("description") {
-                Some(s) => changeset.with_description(s.to_string()),
-                None => changeset,
-            };
-
-            let changeset = match matches.get_one::<String>("context") {
-                Some(s) => changeset.with_context(s.to_string()),
-                None => changeset,
-            };
-
-            changeset
+        let changeset = match matches.get_one::<String>("context") {
+            Some(s) => changeset.with_context(s.to_string()),
+            None => changeset,
         };
 
         let todo = self.service.update_todo(&id, changeset).await?;
