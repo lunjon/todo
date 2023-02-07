@@ -126,8 +126,7 @@ impl Card {
 
         // Render as markdown
         let desc = format!("{}", termimad::text(desc));
-        let chunks = word_chunks(&desc, 150);
-        for line in chunks.iter().skip(1) {
+        for line in word_chunks(&desc, 150) {
             lines.push(line.to_string());
         }
 
