@@ -49,7 +49,7 @@ impl Cli {
 
         match matches.subcommand() {
             None => self.handle_default().await?,
-            Some(("show", sub_matches)) => self.handle_get(sub_matches).await?,
+            Some(("show", sub_matches)) => self.handle_show(sub_matches).await?,
             Some(("list", sub_matches)) => self.handle_list(sub_matches).await?,
             Some(("add", sub_matches)) => self.handle_add(sub_matches).await?,
             Some(("remove", sub_matches)) => self.handle_remove(sub_matches).await?,
@@ -95,7 +95,7 @@ impl Cli {
         Ok(())
     }
 
-    async fn handle_get(&self, matches: &ArgMatches) -> Result<()> {
+    async fn handle_show(&self, matches: &ArgMatches) -> Result<()> {
         let id = Self::parse_id(matches.get_one::<String>("id").unwrap().as_str())?;
         let todo = self.service.get_todo(&id).await?;
         let card = Card::new(true);
@@ -135,9 +135,18 @@ impl Cli {
         };
 
         let todos = self.service.list_todos(filter).await?;
-        if !todos.is_empty() {
+        if todos.is_empty() {
+            return Ok(());
+        }
+
+        if matches.contains_id("details") {
+            let card = Card::new(true);
+            let todos: Vec<String> = todos.iter().map(|todo| card.format(todo)).collect();
+            println!("{}", todos.join("\n\n"))
+        } else {
             println!("{}", self.formatter.todos(&todos));
         }
+
         Ok(())
     }
 

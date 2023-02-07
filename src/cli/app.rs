@@ -52,7 +52,7 @@ fn list() -> Command<'static> {
         .long_about(
             "List todos. Defaults to only listing todos with status != done
 and in the current context (if set). To get more details about
-a todo use the sub-command 'get'.",
+a todo use the sub-command 'show'.",
         )
         .arg(
             Arg::new("all")
@@ -82,6 +82,14 @@ a todo use the sub-command 'get'.",
                 .multiple_values(true)
                 .takes_value(true)
                 .help("Filter on tags. Any matching tag is considered a match."),
+        )
+        .arg(
+            Arg::new("details")
+                .visible_alias("detailed")
+                .visible_alias("show")
+                .long("details")
+                .short('D')
+                .help("Show detailed output format."),
         )
 }
 
