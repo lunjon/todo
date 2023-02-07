@@ -259,19 +259,12 @@ impl Cli {
         let todo = self.service.update_todo(&id, changeset).await?;
 
         // Linking requires additional rules and validation
-        if let Some(links) = matches.get_many::<String>("link") {
-            for link in links {
-                self.service
-                    .link(todo.id, Link::try_from(link.as_str())?)
-                    .await?;
-            }
-        }
-        if let Some(links) = matches.get_many::<String>("unlink") {
-            for link in links {
-                self.service
-                    .unlink(todo.id, Link::try_from(link.as_str())?)
-                    .await?;
-            }
+        if let Some(link) = matches.get_one::<String>("link") {
+            let link = Link::try_from(link.as_str())?;
+            self.service.link(todo.id, link).await?;
+        } else if let Some(link) = matches.get_one::<String>("unlink") {
+            let link = Link::try_from(link.as_str())?;
+            self.service.unlink(todo.id, link).await?;
         }
 
         println!("{}", self.formatter.todo(&todo));

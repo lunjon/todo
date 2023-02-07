@@ -128,7 +128,7 @@ impl Card {
         let desc = format!("{}", termimad::text(desc));
         let chunks = word_chunks(&desc, 150);
         for line in chunks.iter().skip(1) {
-            lines.push(format!("{}", line));
+            lines.push(line.to_string());
         }
 
         Some(lines)

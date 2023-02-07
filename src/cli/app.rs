@@ -1,5 +1,5 @@
 use crate::model::Prio;
-use clap::{builder::PossibleValuesParser, command, Arg, ArgAction, Command};
+use clap::{builder::PossibleValuesParser, command, Arg, Command};
 
 const STATUSES: [&str; 5] = ["any", "new", "started", "done", "blocked"];
 
@@ -192,14 +192,14 @@ Some links are bi-directional: `a blocks b` implices `b blocked by a`.
 ",
                 )
                 .takes_value(true)
-                .action(ArgAction::Append),
+                .conflicts_with("unlink"),
         )
         .arg(
             Arg::new("unlink")
                 .long("unlink")
                 .help("Removes a link by type:id. See --link for valid options.")
                 .takes_value(true)
-                .action(ArgAction::Append),
+                .conflicts_with("link"),
         )
 }
 
