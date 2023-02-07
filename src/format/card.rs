@@ -121,15 +121,14 @@ impl Card {
         }
 
         let field = "Description";
-        let prefix = " ".repeat(INDENT);
-        let chunks = word_chunks(desc, 100);
         let mut lines = Vec::new();
-        if let Some(s) = chunks.first() {
-            lines.push(format!("{}: {}", self.bold_white.style(field), s));
-        }
+        lines.push(format!("{}:", self.bold_white.style(field)));
 
+        // Render as markdown
+        let desc = format!("{}", termimad::text(desc));
+        let chunks = word_chunks(&desc, 150);
         for line in chunks.iter().skip(1) {
-            lines.push(format!("{prefix}{line}"));
+            lines.push(format!("{}", line));
         }
 
         Some(lines)
