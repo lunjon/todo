@@ -13,7 +13,7 @@ const ID_COL_WIDTH: usize = 3;
 const PRIO_COL_WIDTH: usize = 10;
 const STATUS_COL_WIDTH: usize = 8;
 const CTX_COL_WIDTH: usize = 12;
-const SUBJECT_COL_WIDTH: usize = 50;
+const SUBJECT_COL_WIDTH: usize = 80;
 
 /// Specifies how to align the content.
 pub enum Align {
