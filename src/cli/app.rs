@@ -21,12 +21,6 @@ default behaviour of the list command.",
                 ]))
                 .global(true),
         )
-        .arg(
-            Arg::new("no-colors")
-                .help("Do not display colors in output")
-                .long("no-colors")
-                .required(false),
-        )
         .subcommand(show())
         .subcommand(list())
         .subcommand(add())
