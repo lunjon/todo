@@ -124,9 +124,7 @@ impl Card {
         let mut lines = Vec::new();
         lines.push(format!("{}:", self.bold_white.style(field)));
 
-        // Render as markdown
-        let desc = format!("{}", termimad::text(desc));
-        for line in word_chunks(&desc, 150) {
+        for line in word_chunks(desc, 200) {
             lines.push(line.to_string());
         }
 
